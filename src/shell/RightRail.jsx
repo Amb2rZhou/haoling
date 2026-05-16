@@ -31,26 +31,19 @@ export default function RightRail({ avatar = '👤' }) {
       </button>
 
       <button className={styles.actionBtn}>
-        <svg width="42" height="42" viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="1.5" strokeLinejoin="round">
-          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="none" />
+        <svg width="42" height="42" viewBox="0 0 24 24" fill="white">
+          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
         </svg>
         <span className={styles.count}>9043</span>
       </button>
 
       <button className={styles.actionBtn}>
         <svg width="40" height="40" viewBox="0 0 24 24" fill="white">
-          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+          <path d="M14 9V5l7 7-7 7v-4.1c-5 0-8.5 1.6-11 5.1 1-5 4-10 11-11z" />
         </svg>
         <span className={styles.count}>1.5w</span>
       </button>
 
-      <div className={styles.similarCard}>
-        <div className={styles.similarImgs}>
-          <div className={styles.similarImg} style={{ background: '#a55' }}>👤</div>
-          <div className={styles.similarImg} style={{ background: '#5a8' }}>👤</div>
-        </div>
-        <div className={styles.similarLabel}>玩同款</div>
-      </div>
     </div>
   );
 }

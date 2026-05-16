@@ -15,9 +15,10 @@ const _scratchVec1 = new THREE.Vector3();
 const _scratchVec2 = new THREE.Vector3();
 const _scratchMatrix = new THREE.Matrix4();
 const _Y_AXIS = new THREE.Vector3(0, 1, 0);
-const SCALE_OUTER = 0.7; // 外层 group 的 scale，反向除以它把世界坐标换算回 Tube local
+const SCALE_OUTER = 0.56; // 外层 group 的 scale（整体缩小 20% 自 0.7）
 
-const TUBE_MAX_R = 0.41; // 签上端中心最远到此（签外边贴筒内壁 0.49 留 margin）
+const TUBE_MAX_R = 0.40; // 签上端中心最远到此（紧贴筒内壁 0.49 - 签半宽 0.06 - margin 0.03）
+const PHYSICS_SUBSTEPS = 2; // 子步长积分次数，防摇晃冲过 clamp
 
 // 签的 2D 轮廓：长方形主体 + 顶部楔形尖头（铅笔削尖样）
 function makeStickShape(width, length) {
@@ -56,6 +57,94 @@ function makeLabelTexture(text) {
   });
   const tex = new THREE.CanvasTexture(canvas);
   tex.needsUpdate = true;
+  tex.minFilter = THREE.LinearFilter;
+  return tex;
+}
+
+// 加载 seal.png，把灰色背景像素转成 transparent，返回 Texture
+function loadSealTexture() {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = '/img/seal.png';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, 256, 256);
+      const data = ctx.getImageData(0, 0, 256, 256);
+      const px = data.data;
+      // 把灰色背景（r≈g≈b 且非红色）变透明，保留红色印章
+      for (let i = 0; i < px.length; i += 4) {
+        const r = px[i], g = px[i + 1], b = px[i + 2];
+        const isRed = r > Math.max(g, b) + 25; // 红色像素
+        if (!isRed) {
+          // 灰色/暗背景 → 透明（按亮度渐变让边缘自然）
+          px[i + 3] = 0;
+        }
+      }
+      ctx.putImageData(data, 0, 0);
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.needsUpdate = true;
+      resolve(tex);
+    };
+    img.onerror = () => resolve(null);
+  });
+}
+
+function useSealTexture() {
+  const [tex, setTex] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    loadSealTexture().then((t) => {
+      if (!cancelled) setTex(t);
+    });
+    return () => { cancelled = true; };
+  }, []);
+  return tex;
+}
+
+// 生成程序化木纹灰度贴图（沿轴向纵纹，配合 color multiply 出各部位颜色）
+function makeWoodGrainTexture(seed = 42) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 1024;
+  const ctx = canvas.getContext('2d');
+  const rng = makeRng(seed);
+
+  // 基础亮灰（接近白让 color multiply 后保留色相）
+  ctx.fillStyle = '#e8e8e8';
+  ctx.fillRect(0, 0, 256, 1024);
+
+  // 细密暗纹（100 条沿 +Y 方向的细线）
+  for (let i = 0; i < 110; i++) {
+    const x = rng() * 256;
+    const w = 0.5 + rng() * 2.5;
+    const gray = Math.floor(70 + rng() * 60);
+    ctx.fillStyle = `rgba(${gray}, ${gray}, ${gray}, ${0.12 + rng() * 0.22})`;
+    ctx.fillRect(x, 0, w, 1024);
+  }
+
+  // 较粗的深纹（10 条），模拟主纹理
+  for (let i = 0; i < 10; i++) {
+    const x = rng() * 256;
+    const w = 3 + rng() * 7;
+    ctx.fillStyle = `rgba(50, 50, 50, ${0.16 + rng() * 0.12})`;
+    ctx.fillRect(x, 0, w, 1024);
+  }
+
+  // 高光细纹（40 条），模拟反光
+  for (let i = 0; i < 40; i++) {
+    const x = rng() * 256;
+    const w = 0.5 + rng() * 1.5;
+    ctx.fillStyle = `rgba(255, 255, 255, ${0.1 + rng() * 0.14})`;
+    ctx.fillRect(x, 0, w, 1024);
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
   tex.minFilter = THREE.LinearFilter;
   return tex;
 }
@@ -103,7 +192,7 @@ function generateSticks(count, seed = 42) {
   for (let i = 0; i < count; i++) {
     // 上端：在筒口沿圆周均匀分布 + 随机偏移，外边贴筒壁
     const a2 = (i / count) * Math.PI * 2 + (rng() - 0.5) * 0.5;
-    const r2 = TUBE_INNER_R * (0.94 + rng() * 0.02); // r2 ≈ 0.395-0.403
+    const r2 = TUBE_INNER_R * (0.92 + rng() * 0.04); // r2 ≈ 0.388-0.403（紧贴筒壁）
     const upY = 0.62 + rng() * 0.13;
     const P2 = new THREE.Vector3(
       Math.cos(a2) * r2,
@@ -148,6 +237,8 @@ function Tube({ phase, chosenIndex, chosenLabel }) {
     () => (fontReady ? makeLabelTexture(chosenLabel || '上签') : null),
     [chosenLabel, fontReady]
   );
+  const woodTexture = useMemo(() => makeWoodGrainTexture(42), []);
+  const sealTexture = useSealTexture();
   const groupRef = useRef();
   const shakeStartRef = useRef(0);
   const sticks = useMemo(() => generateSticks(9), []);
@@ -182,8 +273,8 @@ function Tube({ phase, chosenIndex, chosenLabel }) {
 
     // 2. 签：velocity-based 倒立摆物理 + 碰壁反弹 + chosen 签爬升
     const K_SPRING = 30;
-    const DAMP = 2.5;
-    const DRIVE_AMP = 22;
+    const DAMP = 2.8;
+    const DRIVE_AMP = 20;
     const BOUNCE = 0.55;
     const CHOSEN_PROTRUDE_MAX = 0.85; // chosen 签最终爬升的距离
     const shakeT = phase === 'shaking' && shakeStartRef.current
@@ -197,49 +288,53 @@ function Tube({ phase, chosenIndex, chosenLabel }) {
       const baseQ = _scratchBaseQ.fromArray(s.baseQuat);
       const isChosen = i === chosenIndex;
 
-      // 力：driving + spring + damp（chosen 签后半程驱动减弱，让它稳定爬升）
-      let accX = -K_SPRING * st.thetaX - DAMP * st.omegaX;
-      let accZ = -K_SPRING * st.thetaZ - DAMP * st.omegaZ;
-      if (phase === 'shaking') {
-        const t = state.clock.elapsedTime + s.seed * 13;
-        const driveScale = isChosen && shakeT > 0.9
-          ? Math.max(0.15, 1 - (shakeT - 0.9) / 0.6)
-          : (shakeT > 0.9 ? Math.max(0.3, 1 - (shakeT - 0.9) / 1.2) : 1);
-        accX += Math.sin(t * 8 + s.seed * 3) * DRIVE_AMP * driveScale;
-        accZ += Math.cos(t * 9 + s.seed * 7) * DRIVE_AMP * driveScale;
-      }
-      st.omegaX += accX * dt;
-      st.omegaZ += accZ * dt;
-      st.thetaX += st.omegaX * dt;
-      st.thetaZ += st.omegaZ * dt;
-
-      // 应用：base quat × Euler(thetaX, 0, thetaZ)
-      _scratchEuler.set(st.thetaX, 0, st.thetaZ);
-      _scratchOffsetQ.setFromEuler(_scratchEuler);
-      _scratchFinalQ.copy(baseQ).multiply(_scratchOffsetQ);
-
-      // 碰壁检测
-      _scratchUp.copy(_Y_AXIS).applyQuaternion(_scratchFinalQ);
-      const upX = s.P1[0] + _scratchUp.x * s.len;
-      const upZ = s.P1[2] + _scratchUp.z * s.len;
-      const upR = Math.sqrt(upX * upX + upZ * upZ);
-
-      if (upR > TUBE_MAX_R) {
-        const nX = upX / upR;
-        const nZ = upZ / upR;
-        const ratio = TUBE_MAX_R / upR;
-        st.thetaX *= ratio;
-        st.thetaZ *= ratio;
-        const omegaRadial = st.omegaX * nX + st.omegaZ * nZ;
-        if (omegaRadial > 0) {
-          const corr = -(1 + BOUNCE) * omegaRadial;
-          st.omegaX += corr * nX;
-          st.omegaZ += corr * nZ;
+      // 子步长积分：每帧 dt 分 PHYSICS_SUBSTEPS 步，每步算物理 + clamp
+      // 这样摇晃过程中不会一帧冲过 TUBE_MAX_R 边界
+      const subDt = dt / PHYSICS_SUBSTEPS;
+      for (let sub = 0; sub < PHYSICS_SUBSTEPS; sub++) {
+        let accX = -K_SPRING * st.thetaX - DAMP * st.omegaX;
+        let accZ = -K_SPRING * st.thetaZ - DAMP * st.omegaZ;
+        if (phase === 'shaking') {
+          const t = state.clock.elapsedTime + s.seed * 13;
+          const driveScale = isChosen && shakeT > 0.9
+            ? Math.max(0.15, 1 - (shakeT - 0.9) / 0.6)
+            : (shakeT > 0.9 ? Math.max(0.3, 1 - (shakeT - 0.9) / 1.2) : 1);
+          accX += Math.sin(t * 8 + s.seed * 3) * DRIVE_AMP * driveScale;
+          accZ += Math.cos(t * 9 + s.seed * 7) * DRIVE_AMP * driveScale;
         }
+        st.omegaX += accX * subDt;
+        st.omegaZ += accZ * subDt;
+        st.thetaX += st.omegaX * subDt;
+        st.thetaZ += st.omegaZ * subDt;
+
+        // 每子步都 clamp
         _scratchEuler.set(st.thetaX, 0, st.thetaZ);
         _scratchOffsetQ.setFromEuler(_scratchEuler);
         _scratchFinalQ.copy(baseQ).multiply(_scratchOffsetQ);
+        _scratchUp.copy(_Y_AXIS).applyQuaternion(_scratchFinalQ);
+        const upX = s.P1[0] + _scratchUp.x * s.len;
+        const upZ = s.P1[2] + _scratchUp.z * s.len;
+        const upR = Math.sqrt(upX * upX + upZ * upZ);
+
+        if (upR > TUBE_MAX_R) {
+          const nX = upX / upR;
+          const nZ = upZ / upR;
+          const ratio = TUBE_MAX_R / upR;
+          st.thetaX *= ratio;
+          st.thetaZ *= ratio;
+          const omegaRadial = st.omegaX * nX + st.omegaZ * nZ;
+          if (omegaRadial > 0) {
+            const corr = -(1 + BOUNCE) * omegaRadial;
+            st.omegaX += corr * nX;
+            st.omegaZ += corr * nZ;
+          }
+        }
       }
+
+      // 最终 quaternion（基于最后子步的 theta）
+      _scratchEuler.set(st.thetaX, 0, st.thetaZ);
+      _scratchOffsetQ.setFromEuler(_scratchEuler);
+      _scratchFinalQ.copy(baseQ).multiply(_scratchOffsetQ);
 
       // chosen 签：从 0.9s 开始沿轴向爬升，stay protruded in 'drawn'
       let protrudeTarget = 0;
@@ -260,8 +355,8 @@ function Tube({ phase, chosenIndex, chosenLabel }) {
         const camUp = _scratchUp.set(0, 1, 0).applyQuaternion(cam.quaternion);
         const camRight = _scratchVec2.set(1, 0, 0).applyQuaternion(cam.quaternion);
 
-        // 屏幕中央世界位置：摄像机前 2.8 单位
-        const FLY_DISTANCE = 2.8;
+        // 屏幕中央世界位置：摄像机前 2.6 单位（签视觉拉近放大）
+        const FLY_DISTANCE = 2.6;
         const centerWorld = _scratchVec1.copy(cam.position).add(
           _scratchDir.clone().multiplyScalar(FLY_DISTANCE)
         );
@@ -270,13 +365,23 @@ function Tube({ phase, chosenIndex, chosenLabel }) {
         const targetPos = centerWorld.divideScalar(SCALE_OUTER);
 
         // 目标 quaternion：签 +Y 朝 camUp，宽面 +Z 朝摄像机（即 -forward）
-        // makeBasis 第三参数取反 forward，让 mesh local +Z 指向摄像机
+        // camRight × camUp = -forward = backDir，已是右手系，X 不需要反号
         const backDir = _scratchDir.clone().negate();
-        // 为了保持右手系，X 也取反（X × Y = Z）
-        const flippedRight = camRight.clone().negate();
-        _scratchMatrix.makeBasis(flippedRight, camUp, backDir);
+        _scratchMatrix.makeBasis(camRight, camUp, backDir);
         const targetQ = _scratchOffsetQ.setFromRotationMatrix(_scratchMatrix);
+        // 加一点斜角：绕 Y 轴 +10°、绕 X 轴 -4° → 露出侧厚 + 上端略后倾，立体感
+        _scratchEuler.set(-0.07, 0.18, 0);
+        const tilt = new THREE.Quaternion().setFromEuler(_scratchEuler);
+        targetQ.multiply(tilt);
 
+        // Hemisphere check：quaternion 双覆盖意味着 q 和 -q 同一旋转。
+        // slerp 走最短路径，若 dot < 0 反号 targetQ 保证签从字面朝相机方向插值
+        if (g.quaternion.dot(targetQ) < 0) {
+          targetQ.x = -targetQ.x;
+          targetQ.y = -targetQ.y;
+          targetQ.z = -targetQ.z;
+          targetQ.w = -targetQ.w;
+        }
         const lerpSpeed = Math.min(1, dt * 3);
         g.position.lerp(targetPos, lerpSpeed);
         g.quaternion.slerp(targetQ, lerpSpeed);
@@ -295,44 +400,52 @@ function Tube({ phase, chosenIndex, chosenLabel }) {
 
   return (
     <group ref={groupRef}>
-      {/* 外壁 */}
+      {/* 外壁：深胡桃木 + 木纹 */}
       <mesh position={[0, 0, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[0.55, 0.55, 1.4, 8, 1, true]} />
         <meshStandardMaterial
-          color="#c8c8cc"
-          roughness={0.55}
-          metalness={0.08}
+          color="#7a4720"
+          map={woodTexture}
+          roughness={0.92}
+          metalness={0}
           side={THREE.FrontSide}
         />
       </mesh>
 
-      {/* 内壁 */}
+      {/* 内壁：更深木色 + 木纹 */}
       <mesh position={[0, 0, 0]} receiveShadow>
         <cylinderGeometry args={[0.49, 0.49, 1.38, 8, 1, true]} />
         <meshStandardMaterial
-          color="#9a9a9e"
-          roughness={0.85}
+          color="#452813"
+          map={woodTexture}
+          roughness={0.95}
           side={THREE.BackSide}
         />
       </mesh>
 
-      {/* 筒口顶环 */}
+      {/* 筒口顶环：木质边缘 + 木纹 */}
       <mesh position={[0, 0.7, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[0.49, 0.55, 8]} />
         <meshStandardMaterial
-          color="#b8b8bc"
-          roughness={0.55}
-          metalness={0.08}
+          color="#8a542a"
+          map={woodTexture}
+          roughness={0.9}
+          metalness={0}
           side={THREE.DoubleSide}
         />
       </mesh>
 
-      {/* 筒底封盖 */}
-      <mesh position={[0, -0.68, 0]} receiveShadow>
-        <cylinderGeometry args={[0.49, 0.49, 0.04, 8]} />
+      {/* 筒底封盖：深木色 + 木纹 */}
+      <mesh position={[0, -0.66, 0]} castShadow receiveShadow>
+        <cylinderGeometry args={[0.55, 0.55, 0.08, 8]} />
         <meshStandardMaterial
-          color="#7e7e82"
-          roughness={0.9}
+          color="#5a3318"
+          map={woodTexture}
+          roughness={0.95}
+          metalness={0}
+          polygonOffset
+          polygonOffsetFactor={-2}
+          polygonOffsetUnits={-2}
         />
       </mesh>
 
@@ -366,6 +479,13 @@ function Tube({ phase, chosenIndex, chosenLabel }) {
                   <meshBasicMaterial map={labelTexture} transparent />
                 </mesh>
               )}
+              {/* "上上签"下方"好灵"印章 */}
+              {showChosenStyle && sealTexture && (
+                <mesh position={[0, s.len * 0.06, STICK_THICKNESS / 2 + 0.002]}>
+                  <planeGeometry args={[STICK_WIDTH * 0.95, STICK_WIDTH * 0.95]} />
+                  <meshBasicMaterial map={sealTexture} transparent />
+                </mesh>
+              )}
             </group>
           </group>
         );
@@ -380,14 +500,18 @@ export default function Tube3D({ phase, chosenIndex = 0, chosenLabel = '上签',
       shadows
       camera={{ position: [2.6, 2.0, 3.6], fov: 32 }}
       style={{ width: '100%', height: '100%' }}
+      dpr={[1, 2]}
+      gl={{ antialias: true }}
       onClick={onTubeClick}
     >
       <CameraTarget />
       {/* 灯光 */}
-      <ambientLight intensity={0.55} />
+      <ambientLight intensity={0.85} />
+      {/* hemisphere：天空浅色 + 地面暖色，让背光面也有亮度，消除"黑边"感 */}
+      <hemisphereLight args={['#fff8e0', '#e8d9b8', 0.55]} />
       <directionalLight
-        position={[3, 5, 3]}
-        intensity={1.1}
+        position={[0.4, 5, 0.4]}
+        intensity={0.85}
         castShadow
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
@@ -396,6 +520,8 @@ export default function Tube3D({ phase, chosenIndex = 0, chosenLabel = '上签',
         shadow-camera-top={3}
         shadow-camera-bottom={-3}
       />
+      {/* 侧向 fill light（不投影，只补侧面亮度，保立体感）*/}
+      <directionalLight position={[3, 2, 3]} intensity={0.4} color="#fff5e0" />
       <directionalLight position={[-2, 2, -1]} intensity={0.3} color="#fff5e0" />
 
       {/* 半透明地面：接住阴影但融入暗背景 */}
@@ -408,7 +534,7 @@ export default function Tube3D({ phase, chosenIndex = 0, chosenLabel = '上签',
         <shadowMaterial opacity={0.35} />
       </mesh>
 
-      <group scale={0.7}>
+      <group scale={SCALE_OUTER}>
         <Tube phase={phase} chosenIndex={chosenIndex} chosenLabel={chosenLabel} />
       </group>
 
@@ -427,11 +553,11 @@ export default function Tube3D({ phase, chosenIndex = 0, chosenLabel = '上签',
 
       {/* revealing/drawn 阶段：真 DOF，chosen 签清晰，后方筒+其他签虚化 */}
       {(phase === 'revealing' || phase === 'drawn') && (
-        <EffectComposer>
+        <EffectComposer multisampling={8}>
           <DepthOfField
-            worldFocusDistance={2.8}  // 直接给世界距离：chosen 签飞到的位置
-            worldFocusRange={1.0}     // 对焦清晰范围 ±0.5 单位
-            bokehScale={6}            // 模糊圈大小（越大背景越糊）
+            worldFocusDistance={2.6}
+            worldFocusRange={1.5}     // 加宽焦点范围，让签长 ~1.2 完全在焦内
+            bokehScale={3}            // 模糊幅度减半，边缘虚化更轻
           />
         </EffectComposer>
       )}

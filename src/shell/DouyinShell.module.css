@@ -1,11 +1,13 @@
 .shell {
   position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  /* 锁定 iPhone 14 系列的 9:19.5 手机比例 */
+  height: min(100vh, 100dvh, calc(100vw * 19.5 / 9));
+  aspect-ratio: 9 / 19.5;
   max-width: 480px;
-  margin: 0 auto;
+  max-height: 1040px;
   background: #000;
   overflow: hidden;
   color: white;

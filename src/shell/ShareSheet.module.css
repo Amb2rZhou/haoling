@@ -1,0 +1,140 @@
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 100;
+}
+
+.sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #FFFFFF;
+  border-radius: 18px 18px 0 0;
+  padding: 14px 6px 24px;
+  z-index: 101;
+  box-shadow: 0 -4px 22px rgba(0, 0, 0, 0.12);
+  font-family: 'PingFang SC', system-ui, sans-serif;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 14px 12px;
+}
+
+.title {
+  font-size: 14px;
+  color: #1c1c1c;
+  font-weight: 500;
+}
+
+.closeBtn {
+  width: 28px;
+  height: 28px;
+  background: #f1f1f1;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.row {
+  display: flex;
+  gap: 16px;
+  padding: 10px 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.row::-webkit-scrollbar {
+  display: none;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.friendAvatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #fdebd8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  overflow: hidden;
+}
+
+/* 最近分享：4 格头像方阵 */
+.recentAvatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  overflow: hidden;
+}
+
+.recentCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.subLabel {
+  font-size: 10px;
+  color: #999;
+  white-space: nowrap;
+  margin-top: -2px;
+}
+
+.moreAvatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 1px solid #e5e5e5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actionIcon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 1px solid #e5e5e5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.label {
+  font-size: 11px;
+  color: #1c1c1c;
+  white-space: nowrap;
+}
+
+.douplus {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #ff5252, #ff9a26);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}

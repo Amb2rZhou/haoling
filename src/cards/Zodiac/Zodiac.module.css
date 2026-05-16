@@ -1,0 +1,151 @@
+.bg {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #F2EFE9;
+  overflow: hidden;
+}
+
+/* 全屏背景海报（新图：手机比例 cover 满屏）*/
+.poster {
+  position: absolute;
+  inset: 0;
+  background-image: url('/img/zodiac-2026.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* CTA 按钮：在"年度关键词"下方位置 */
+.ctaBtn {
+  position: absolute;
+  left: 50px;
+  bottom: 28%;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  z-index: 10;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+}
+
+.ctaRing {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1.6px solid #B22222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 0 0 3px rgba(178, 34, 34, 0.08),
+    0 4px 12px rgba(178, 34, 34, 0.15);
+  backdrop-filter: blur(1px);
+}
+
+.ctaArrow {
+  display: block;
+}
+
+/* 详情页：年度关键词全屏背景 */
+.keywordsPoster {
+  position: absolute;
+  inset: 0;
+  background-image: url('/img/zodiac-keywords.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow-y: auto;
+}
+
+/* "蜕"字左下"好灵"印章 */
+.zodiacSeal {
+  position: absolute;
+  left: 14%;
+  top: 56%;
+  width: 56px;
+  height: 56px;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* 遮盖右上"生肖运势"挂签 */
+.keywordsMaskTop {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 22%;
+  height: 26%;
+  background: #F4ECDE;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* 用底色遮盖"给你的一句话"区域 */
+.keywordsMask {
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  bottom: 5%;
+  height: 14%;
+  background: #F4ECDE;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* 转发按钮（详情页右下）*/
+.shareBtn {
+  position: absolute;
+  right: 18px;
+  bottom: 22%;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1.5px solid rgba(92, 61, 46, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 4px 14px rgba(92, 61, 46, 0.18);
+  backdrop-filter: blur(3px);
+  padding: 0;
+}
+
+.shareBtn:active {
+  transform: scale(0.93);
+}
+
+/* 返回按钮：左上角 */
+.backBtn {
+  position: absolute;
+  top: 100px;
+  left: 20px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(28, 28, 28, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(4px);
+}
+
+.backBtn:active {
+  transform: scale(0.92);
+}

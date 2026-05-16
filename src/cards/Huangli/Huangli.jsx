@@ -4,20 +4,25 @@ import { TODAY, TIER_POOL, PERSONA_TO_HUANGLI } from '../../data/huangli';
 import styles from './Huangli.module.css';
 
 const STATES = {
-  IDLE: 'idle',       // 老黄历完整悬挂，等待撕开
-  TEARING: 'tearing', // 撕开动画播放中（1.5s）
+  IDLE: 'idle',         // 老黄历完整悬挂，等待撕开
+  TEARING: 'tearing',   // 撕开动画播放中
   REVEALED: 'revealed', // 内容卡呈现
 };
 
-// 8 片纸屑，随机方向飘落
+// 8 片纸屑，向下侧散落（撕日历的物理直觉）
 const SCRAPS = Array.from({ length: 8 }).map((_, i) => ({
   id: i,
   x: (Math.random() - 0.5) * 220,
-  y: 220 + Math.random() * 180,
+  y: 240 + Math.random() * 180,
   rot: (Math.random() - 0.5) * 720,
   delay: Math.random() * 0.2,
   size: 12 + Math.random() * 18,
 }));
+
+function prefersReducedMotion() {
+  if (typeof window === 'undefined' || !window.matchMedia) return false;
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
 
 export default function Huangli({ personaId, active }) {
   const [phase, setPhase] = useState(STATES.IDLE);
@@ -28,7 +33,6 @@ export default function Huangli({ personaId, active }) {
     [data.tierId]
   );
 
-  // 切换人设 / 切走再回来 → 重置
   useEffect(() => {
     setPhase(STATES.IDLE);
   }, [personaId, active]);
@@ -36,8 +40,18 @@ export default function Huangli({ personaId, active }) {
   function startTear() {
     if (phase !== STATES.IDLE) return;
     setPhase(STATES.TEARING);
-    setTimeout(() => setPhase(STATES.REVEALED), 1500);
+    const tearDuration = prefersReducedMotion() ? 400 : 1500;
+    setTimeout(() => setPhase(STATES.REVEALED), tearDuration);
   }
+
+  function handleKeyDown(e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      startTear();
+    }
+  }
+
+  const reduced = prefersReducedMotion();
 
   return (
     <div className={styles.bg}>
@@ -54,24 +68,30 @@ export default function Huangli({ personaId, active }) {
             className={styles.calendarStage}
           >
             <div className={styles.calendarFrame}>
-              {/* 老黄历正面 —— 撕开时整体飘走 */}
-              <motion.div
+              {/* 老黄历正面 —— 撕开时整体撕落 */}
+              <motion.button
+                type="button"
                 className={styles.paper}
                 onClick={startTear}
+                onKeyDown={handleKeyDown}
+                aria-label={`撕开 ${TODAY.lunarYear} ${TODAY.lunarDate} 的黄历`}
+                aria-pressed={phase !== STATES.IDLE}
                 animate={
                   phase === STATES.TEARING
-                    ? {
-                        rotate: -18,
-                        x: -60,
-                        y: -360,
-                        opacity: 0,
-                        transition: { duration: 1.2, ease: [0.22, 0.61, 0.36, 1] },
-                      }
+                    ? reduced
+                      ? { opacity: 0, transition: { duration: 0.3 } }
+                      : {
+                          rotate: 22,
+                          x: 30,
+                          y: 320,
+                          opacity: 0,
+                          transition: { duration: 1.2, ease: [0.4, 0, 0.6, 1] },
+                        }
                     : { rotate: 0, x: 0, y: 0, opacity: 1 }
                 }
                 style={{
                   clipPath:
-                    phase === STATES.TEARING
+                    phase === STATES.TEARING && !reduced
                       ? 'polygon(0 0, 100% 0, 100% 12%, 88% 18%, 96% 26%, 82% 34%, 92% 44%, 78% 52%, 90% 62%, 76% 72%, 88% 82%, 74% 92%, 100% 100%, 0 100%)'
                       : 'none',
                 }}
@@ -96,7 +116,7 @@ export default function Huangli({ personaId, active }) {
                 </div>
 
                 {/* 右上角撕口虚线 + 折角 */}
-                <div className={styles.tearCorner}>
+                <div className={styles.tearCorner} aria-hidden="true">
                   <svg viewBox="0 0 60 60" className={styles.tearSvg}>
                     <path
                       d="M 60 0 L 0 0 L 60 60 Z"
@@ -108,11 +128,13 @@ export default function Huangli({ personaId, active }) {
                   </svg>
                 </div>
 
-                <div className={styles.tearHint}>轻 触 撕 开</div>
-              </motion.div>
+                <div className={styles.tearHint} aria-hidden="true">
+                  轻 触 撕 开
+                </div>
+              </motion.button>
 
-              {/* 撕开瞬间的纸屑 */}
-              {phase === STATES.TEARING &&
+              {/* 撕开瞬间的纸屑（reduced motion 下跳过） */}
+              {phase === STATES.TEARING && !reduced &&
                 SCRAPS.map((s) => (
                   <motion.div
                     key={s.id}
@@ -130,7 +152,7 @@ export default function Huangli({ personaId, active }) {
                 ))}
             </div>
 
-            <div className={styles.hint}>
+            <div className={styles.hint} aria-live="polite">
               {phase === STATES.IDLE && '今 日 黄 历'}
               {phase === STATES.TEARING && '· 撕 · 撕 · 撕 ·'}
             </div>
@@ -140,7 +162,7 @@ export default function Huangli({ personaId, active }) {
             key="content"
             initial={{ opacity: 0, scale: 0.92, y: 30 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
+            transition={{ duration: reduced ? 0.3 : 0.8, ease: 'easeOut' }}
             className={styles.contentStage}
           >
             <div
@@ -159,7 +181,7 @@ export default function Huangli({ personaId, active }) {
                     </div>
                   ))}
                 </div>
-                <div className={styles.divider} />
+                <div className={styles.divider} aria-hidden="true" />
                 <div className={styles.jiCol}>
                   <div className={styles.colLabel}>忌</div>
                   {data.ji.map((item, i) => (

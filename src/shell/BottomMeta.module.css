@@ -34,3 +34,26 @@
   margin-top: 4px;
   opacity: 0.9;
 }
+
+.metaLine {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.pin {
+  opacity: 0.9;
+}
+
+.dot {
+  opacity: 0.7;
+}

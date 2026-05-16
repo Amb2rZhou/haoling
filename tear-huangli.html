@@ -6,330 +6,96 @@
   <title>今日黄历</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;300;400;600&display=swap');
-
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
     body {
-      min-height: 100vh;
-      min-height: 100dvh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      min-height: 100vh; min-height: 100dvh;
+      display: flex; align-items: center; justify-content: center;
       background: #F2EFE9;
       font-family: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
-      position: relative;
-      overflow: hidden;
-      -webkit-user-select: none;
-      user-select: none;
+      position: relative; overflow: hidden;
+      -webkit-user-select: none; user-select: none;
       -webkit-tap-highlight-color: transparent;
     }
-
-    .glow {
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(100px);
-      pointer-events: none;
-      z-index: 0;
-    }
-    .glow-1 {
-      width: 600px; height: 600px;
-      top: -200px; left: -200px;
-      background: #1C1C1C;
-      opacity: 0.06;
-    }
-    .glow-2 {
-      width: 500px; height: 500px;
-      bottom: -150px; right: -150px;
-      background: #C4A882;
-      opacity: 0.1;
-    }
-    .glow-3 {
-      width: 300px; height: 300px;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      background: #C4A882;
-      opacity: 0;
-      transition: opacity 1.5s ease;
-    }
+    .glow { position: fixed; border-radius: 50%; filter: blur(100px); pointer-events: none; z-index: 0; }
+    .glow-1 { width: 600px; height: 600px; top: -200px; left: -200px; background: #1C1C1C; opacity: 0.06; }
+    .glow-2 { width: 500px; height: 500px; bottom: -150px; right: -150px; background: #C4A882; opacity: 0.1; }
+    .glow-3 { width: 300px; height: 300px; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #C4A882; opacity: 0; transition: opacity 1.5s ease; }
     .glow-3.active { opacity: 0.08; }
-
-    .container {
-      width: 100%;
-      max-width: 380px;
-      padding: 40px 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-      z-index: 1;
-    }
-
-    .header {
-      text-align: center;
-      font-size: 13px;
-      color: #AAAAAA;
-      letter-spacing: 0.2em;
-      font-weight: 300;
-      margin-bottom: 36px;
-    }
-
-    .calendar-stack {
-      position: relative;
-      width: 280px;
-      height: 400px;
-      perspective: 1200px;
-    }
-
-    .calendar-under {
-      position: absolute;
-      top: 5px; left: 3px;
-      width: 274px; height: 390px;
-      background: #FAFAF8;
-      border-radius: 2px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.05);
-    }
-
-    .calendar-stub {
-      position: absolute;
-      top: 0; left: 0;
-      width: 280px; height: 400px;
-      z-index: 2;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.4s ease;
-    }
+    .container { width: 100%; max-width: 380px; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 1; }
+    .header { text-align: center; font-size: 13px; color: #AAAAAA; letter-spacing: 0.2em; font-weight: 300; margin-bottom: 36px; }
+    .calendar-stack { position: relative; width: 280px; height: 400px; perspective: 800px; }
+    .calendar-under { position: absolute; top: 5px; left: 3px; width: 274px; height: 390px; background: #FAFAF8; border-radius: 2px; box-shadow: 0 6px 20px rgba(0,0,0,0.05); }
+    .calendar-stub { position: absolute; top: 0; left: 0; width: 280px; height: 400px; z-index: 2; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
     .calendar-stub.visible { opacity: 1; }
     .calendar-stub canvas { width: 100%; height: 100%; }
-
-    .calendar-page {
-      position: absolute;
-      top: 0; left: 0;
+    .calendar-page-wrapper {
+      position: absolute; top: 0; left: 0;
       width: 280px; height: 400px;
-      background: #FFFFFF;
-      border-radius: 2px 2px 3px 3px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 12px 40px rgba(0,0,0,0.08);
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
       z-index: 10;
+      transform-style: preserve-3d;
+      transform-origin: top center;
+      cursor: pointer;
+      transition: none;
     }
-
-    .calendar-page:hover .hint { color: #999999; }
-
-    .top-strip {
-      height: 40px;
-      background: linear-gradient(180deg, #F0F0F0 0%, #E8E8E8 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      position: relative;
-    }
-
-    .holes { display: flex; gap: 20px; }
-
-    .hole {
-      width: 7px; height: 7px;
-      background: #E0DDD6;
-      border-radius: 50%;
-      box-shadow: inset 0 1px 2px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.03);
-    }
-
-    .perforation {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 1px;
-      background: repeating-linear-gradient(90deg, transparent 0px, transparent 3px, #D0D0D0 3px, #D0D0D0 6px);
-    }
-
-    .page-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px 24px;
-    }
-
-    .month-label {
-      font-size: 14px;
-      color: #888888;
-      letter-spacing: 0.12em;
-      font-weight: 300;
-      margin-bottom: 8px;
-    }
-
-    .day-number {
-      font-size: 80px;
-      color: #1C1C1C;
-      letter-spacing: -0.02em;
-      font-weight: 200;
-      line-height: 1;
-      margin-bottom: 6px;
-    }
-
-    .weekday {
-      font-size: 14px;
-      color: #888888;
-      letter-spacing: 0.1em;
-      font-weight: 300;
-      margin-bottom: 20px;
-    }
-
-    .lunar {
-      font-size: 12px;
-      color: #AAAAAA;
-      letter-spacing: 0.08em;
-      font-weight: 300;
-    }
-
-    .hint {
-      position: absolute;
-      bottom: 14px; left: 0; right: 0;
-      text-align: center;
-      font-size: 11px;
-      color: #CCCCCC;
-      letter-spacing: 0.1em;
-      font-weight: 300;
-      transition: color 0.3s;
-    }
-
-    .fortune-wrapper {
-      position: absolute;
-      top: 0; left: 0;
+    .calendar-page-wrapper:hover .hint { color: #999999; }
+    .calendar-page-wrapper .page-front,
+    .calendar-page-wrapper .page-back {
+      position: absolute; top: 0; left: 0;
       width: 280px; height: 400px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 1;
-      opacity: 0;
-      transform: translateY(16px) scale(0.98);
-      transition: all 1s cubic-bezier(0.22, 1, 0.36, 1);
-      pointer-events: none;
-    }
-
-    .fortune-wrapper.visible {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-      pointer-events: auto;
-    }
-
-    .fortune-card {
-      width: 260px;
-      background: #FFFFFF;
-      border-radius: 6px;
-      padding: 32px 24px 28px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.03), 0 12px 32px rgba(0,0,0,0.06);
-      position: relative;
+      backface-visibility: hidden;
+      border-radius: 2px 2px 3px 3px;
       overflow: hidden;
     }
-
-    .fortune-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, #C4A882, transparent);
-      opacity: 0.4;
+    .calendar-page-wrapper .page-front {
+      background: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 12px 40px rgba(0,0,0,0.08);
+      display: flex; flex-direction: column;
     }
-
-    .fortune-label {
-      text-align: center;
-      font-size: 11px;
-      color: #AAAAAA;
-      letter-spacing: 0.15em;
-      font-weight: 300;
-      margin-bottom: 20px;
+    .calendar-page-wrapper .page-back {
+      transform: rotateX(-180deg);
+      background: linear-gradient(180deg, #E8E4DB 0%, #F0ECE3 40%, #EBE7DE 100%);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 12px 40px rgba(0,0,0,0.08);
     }
-
-    .fortune-theme {
-      text-align: center;
-      font-size: 26px;
-      color: #1C1C1C;
-      letter-spacing: 0.15em;
-      font-weight: 300;
-      margin-bottom: 24px;
+    .page-back-texture {
+      position: absolute; inset: 0;
+      opacity: 0.03;
+      background: repeating-linear-gradient(0deg, transparent, transparent 8px, #1C1C1C 8px, #1C1C1C 9px);
     }
-
-    .yi-ji {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 28px;
-      padding: 20px 0;
-      border-top: 1px solid rgba(28,28,28,0.06);
-      border-bottom: 1px solid rgba(28,28,28,0.06);
-      margin-bottom: 20px;
+    .page-back-crease {
+      position: absolute; top: 0; left: 50%; width: 1px; height: 100%;
+      background: linear-gradient(180deg, transparent, rgba(0,0,0,0.04) 20%, rgba(0,0,0,0.04) 80%, transparent);
     }
-
+    .top-strip { height: 40px; background: linear-gradient(180deg, #F0F0F0 0%, #E8E8E8 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative; }
+    .holes { display: flex; gap: 20px; }
+    .hole { width: 7px; height: 7px; background: #E0DDD6; border-radius: 50%; box-shadow: inset 0 1px 2px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.03); }
+    .perforation { position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: repeating-linear-gradient(90deg, transparent 0px, transparent 3px, #D0D0D0 3px, #D0D0D0 6px); }
+    .page-content { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 24px; }
+    .month-label { font-size: 14px; color: #888888; letter-spacing: 0.12em; font-weight: 300; margin-bottom: 8px; }
+    .day-number { font-size: 80px; color: #1C1C1C; letter-spacing: -0.02em; font-weight: 200; line-height: 1; margin-bottom: 6px; }
+    .weekday { font-size: 14px; color: #888888; letter-spacing: 0.1em; font-weight: 300; margin-bottom: 20px; }
+    .lunar { font-size: 12px; color: #AAAAAA; letter-spacing: 0.08em; font-weight: 300; }
+    .hint { position: absolute; bottom: 14px; left: 0; right: 0; text-align: center; font-size: 11px; color: #CCCCCC; letter-spacing: 0.1em; font-weight: 300; transition: color 0.3s; }
+    .fortune-wrapper { position: absolute; top: 0; left: 0; width: 280px; height: 400px; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1; opacity: 0; transform: translateY(16px) scale(0.98); transition: all 1s cubic-bezier(0.22, 1, 0.36, 1); pointer-events: none; }
+    .fortune-wrapper.visible { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+    .fortune-card { width: 260px; background: #FFFFFF; border-radius: 6px; padding: 32px 24px 28px; box-shadow: 0 2px 8px rgba(0,0,0,0.03), 0 12px 32px rgba(0,0,0,0.06); position: relative; overflow: hidden; }
+    .fortune-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, #C4A882, transparent); opacity: 0.4; }
+    .fortune-label { text-align: center; font-size: 11px; color: #AAAAAA; letter-spacing: 0.15em; font-weight: 300; margin-bottom: 20px; }
+    .fortune-theme { text-align: center; font-size: 26px; color: #1C1C1C; letter-spacing: 0.15em; font-weight: 300; margin-bottom: 24px; }
+    .yi-ji { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; padding: 20px 0; border-top: 1px solid rgba(28,28,28,0.06); border-bottom: 1px solid rgba(28,28,28,0.06); margin-bottom: 20px; }
     .yi, .ji { text-align: left; }
-
-    .section-title {
-      font-size: 13px;
-      color: #888888;
-      letter-spacing: 0.1em;
-      font-weight: 300;
-      margin-bottom: 10px;
-    }
-
+    .section-title { font-size: 13px; color: #888888; letter-spacing: 0.1em; font-weight: 300; margin-bottom: 10px; }
     .yi .section-title { color: #C4A882; }
-
-    .item {
-      font-size: 13px;
-      color: #1C1C1C;
-      letter-spacing: 0.06em;
-      font-weight: 300;
-      line-height: 2;
-    }
-
-    .interpretation {
-      font-size: 12px;
-      color: #888888;
-      line-height: 2;
-      letter-spacing: 0.04em;
-      font-weight: 300;
-    }
-
-    .manifest-hint {
-      margin-top: 28px;
-      text-align: center;
-      font-size: 11px;
-      color: #C4A882;
-      letter-spacing: 0.12em;
-      font-weight: 300;
-      opacity: 0.7;
-      animation: breathe 2.5s ease-in-out infinite;
-    }
-
-    @keyframes breathe {
-      0%, 100% { opacity: 0.5; }
-      50% { opacity: 1; }
-    }
-
-    .manifest-burst {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 100;
-    }
-
-    #particles {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 50;
-    }
-
+    .item { font-size: 13px; color: #1C1C1C; letter-spacing: 0.06em; font-weight: 300; line-height: 2; }
+    .interpretation { font-size: 12px; color: #888888; line-height: 2; letter-spacing: 0.04em; font-weight: 300; }
+    .manifest-hint { margin-top: 28px; text-align: center; font-size: 11px; color: #C4A882; letter-spacing: 0.12em; font-weight: 300; opacity: 0.7; animation: breathe 2.5s ease-in-out infinite; }
+    @keyframes breathe { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+    #particles { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
+    .manifest-burst { position: fixed; inset: 0; pointer-events: none; z-index: 100; }
     @media (max-height: 700px) {
-      .container { padding: 20px 20px; }
-      .header { margin-bottom: 20px; }
-      .calendar-stack { height: 360px; }
-      .calendar-page { height: 360px; }
-      .calendar-under { height: 350px; }
-      .calendar-stub { height: 360px; }
-      .fortune-wrapper { height: 360px; }
-      .day-number { font-size: 64px; }
+      .container { padding: 20px 20px; } .header { margin-bottom: 20px; }
+      .calendar-stack { height: 360px; } .calendar-page-wrapper, .calendar-page-wrapper .page-front, .calendar-page-wrapper .page-back { height: 360px; }
+      .calendar-under { height: 350px; } .calendar-stub { height: 360px; }
+      .fortune-wrapper { height: 360px; } .day-number { font-size: 64px; }
     }
   </style>
 </head>
@@ -337,461 +103,363 @@
   <div class="glow glow-1"></div>
   <div class="glow glow-2"></div>
   <div class="glow glow-3" id="glowCenter"></div>
-
   <canvas id="particles"></canvas>
   <canvas class="manifest-burst" id="manifestBurst"></canvas>
-
   <div class="container">
     <div class="header">今 日 黄 历</div>
-
     <div class="calendar-stack" id="calendarStack">
       <div class="calendar-under"></div>
-
-      <div class="calendar-stub" id="calendarStub">
-        <canvas id="stubCanvas"></canvas>
-      </div>
-
-      <div class="calendar-page" id="calendarPage">
-        <div class="top-strip">
-          <div class="holes">
-            <div class="hole"></div><div class="hole"></div><div class="hole"></div>
-            <div class="hole"></div><div class="hole"></div><div class="hole"></div>
-            <div class="hole"></div><div class="hole"></div>
+      <div class="calendar-stub" id="calendarStub"><canvas id="stubCanvas"></canvas></div>
+      <div class="calendar-page-wrapper" id="pageWrapper">
+        <div class="page-front">
+          <div class="top-strip">
+            <div class="holes"><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div><div class="hole"></div></div>
+            <div class="perforation"></div>
           </div>
-          <div class="perforation"></div>
+          <div class="page-content">
+            <div class="month-label" id="monthLabel"></div>
+            <div class="day-number" id="dayNumber"></div>
+            <div class="weekday" id="weekdayLabel"></div>
+            <div class="lunar" id="lunarLabel"></div>
+          </div>
+          <div class="hint">轻触撕开</div>
         </div>
-
-        <div class="page-content">
-          <div class="month-label" id="monthLabel"></div>
-          <div class="day-number" id="dayNumber"></div>
-          <div class="weekday" id="weekdayLabel"></div>
-          <div class="lunar" id="lunarLabel"></div>
+        <div class="page-back">
+          <div class="page-back-texture"></div>
+          <div class="page-back-crease"></div>
         </div>
-
-        <div class="hint">轻触撕开</div>
       </div>
-
       <div class="fortune-wrapper" id="fortuneWrapper">
         <div class="fortune-card" id="fortuneCard">
           <div class="fortune-label">今 日 运 势</div>
           <div class="fortune-theme" id="fortuneTheme"></div>
-
           <div class="yi-ji">
-            <div class="yi">
-              <div class="section-title">宜</div>
-              <div class="items" id="yiItems"></div>
-            </div>
-            <div class="ji">
-              <div class="section-title">忌</div>
-              <div class="items" id="jiItems"></div>
-            </div>
+            <div class="yi"><div class="section-title">宜</div><div class="items" id="yiItems"></div></div>
+            <div class="ji"><div class="section-title">忌</div><div class="items" id="jiItems"></div></div>
           </div>
-
           <div class="interpretation" id="interpretationText"></div>
         </div>
-
         <div class="manifest-hint">双击显化</div>
       </div>
     </div>
   </div>
-
   <script>
-    (function() {
-      var canvas = document.getElementById('particles');
-      var ctx = canvas.getContext('2d');
-      var burstCanvas = document.getElementById('manifestBurst');
-      var burstCtx = burstCanvas.getContext('2d');
-      var particles = [];
-      var burstParticles = [];
+  (function() {
+    var pCanvas = document.getElementById('particles');
+    var pCtx = pCanvas.getContext('2d');
+    var bCanvas = document.getElementById('manifestBurst');
+    var bCtx = bCanvas.getContext('2d');
+    var parts = [], bParts = [];
+    function resize() { pCanvas.width = innerWidth; pCanvas.height = innerHeight; bCanvas.width = innerWidth; bCanvas.height = innerHeight; }
+    resize(); addEventListener('resize', resize);
 
-      function resize() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        burstCanvas.width = window.innerWidth;
-        burstCanvas.height = window.innerHeight;
-      }
-      resize();
-      window.addEventListener('resize', resize);
+    function PaperBit(x, y, hard) {
+      this.x = x; this.y = y;
+      this.vx = (Math.random() - 0.5) * (hard ? 6 : 2.5);
+      this.vy = hard ? -1.5 - Math.random() * 4 : 0.5 + Math.random() * 1.5;
+      this.sz = 1.5 + Math.random() * 3.5; this.a = 0.85;
+      this.rot = Math.random() * 6.28; this.rs = (Math.random() - 0.5) * 0.2;
+      this.g = 0.05 + Math.random() * 0.03; this.drag = 0.996;
+      var r = Math.random();
+      this.c = r < 0.3 ? '#E8E5DF' : r < 0.55 ? '#D5D0C8' : r < 0.8 ? '#C4A882' : '#1C1C1C';
+      this.life = 1; this.dec = 0.006 + Math.random() * 0.007;
+      this.wb = Math.random() * 6.28; this.ws = 0.03 + Math.random() * 0.05;
+    }
+    PaperBit.prototype.update = function() {
+      this.vy += this.g; this.vx *= this.drag;
+      this.x += this.vx + Math.sin(this.wb) * 0.3; this.y += this.vy;
+      this.rot += this.rs; this.wb += this.ws; this.life -= this.dec; this.a = this.life * 0.85;
+    };
+    PaperBit.prototype.draw = function(c) {
+      c.save(); c.translate(this.x, this.y); c.rotate(this.rot);
+      c.globalAlpha = Math.max(0, this.a); c.fillStyle = this.c;
+      c.fillRect(-this.sz * 0.5, -this.sz * 0.3, this.sz, this.sz * 0.6); c.restore();
+    };
 
-      function PaperBit(x, y, fromTear) {
-        this.x = x; this.y = y;
-        if (fromTear) {
-          this.vx = (Math.random() - 0.5) * 7;
-          this.vy = -2 - Math.random() * 5;
-        } else {
-          this.vx = (Math.random() - 0.5) * 3;
-          this.vy = -0.5 - Math.random() * 2;
-        }
-        this.size = 1.5 + Math.random() * 4;
-        this.alpha = 0.9;
-        this.rotation = Math.random() * Math.PI * 2;
-        this.rotSpeed = (Math.random() - 0.5) * 0.2;
-        this.gravity = 0.05 + Math.random() * 0.04;
-        this.drag = 0.995;
-        var r = Math.random();
-        if (r < 0.35) this.color = '#E8E5DF';
-        else if (r < 0.6) this.color = '#D5D0C8';
-        else if (r < 0.85) this.color = '#C4A882';
-        else this.color = '#1C1C1C';
-        this.life = 1;
-        this.decay = 0.005 + Math.random() * 0.008;
-        this.wobble = Math.random() * Math.PI * 2;
-        this.wobbleSpeed = 0.04 + Math.random() * 0.06;
-      }
-      PaperBit.prototype.update = function() {
-        this.vy += this.gravity; this.vx *= this.drag;
-        this.x += this.vx + Math.sin(this.wobble) * 0.4;
-        this.y += this.vy; this.rotation += this.rotSpeed;
-        this.wobble += this.wobbleSpeed; this.life -= this.decay;
-        this.alpha = this.life * 0.9;
-      };
-      PaperBit.prototype.draw = function(c) {
-        c.save(); c.translate(this.x, this.y); c.rotate(this.rotation);
-        c.globalAlpha = Math.max(0, this.alpha); c.fillStyle = this.color;
-        c.fillRect(-this.size * 0.5, -this.size * 0.3, this.size, this.size * 0.6);
-        c.restore();
-      };
-      PaperBit.prototype.dead = function() { return this.life <= 0; };
+    function GoldP(x, y) {
+      var a = Math.random() * 6.28, s = 2 + Math.random() * 5;
+      this.x = x; this.y = y; this.vx = Math.cos(a) * s; this.vy = Math.sin(a) * s;
+      this.sz = 2 + Math.random() * 4; this.a = 1; this.rot = Math.random() * 6.28;
+      this.rs = (Math.random() - 0.5) * 0.2; this.g = 0.02; this.life = 1;
+      this.dec = 0.008 + Math.random() * 0.006;
+      var r = Math.random();
+      this.c = r < 0.5 ? '#C4A882' : r < 0.8 ? '#D4BC96' : '#E8D5B8';
+    }
+    GoldP.prototype.update = function() {
+      this.vy += this.g; this.vx *= 0.98; this.vy *= 0.98;
+      this.x += this.vx; this.y += this.vy; this.rot += this.rs;
+      this.life -= this.dec; this.a = this.life; this.sz *= 0.998;
+    };
+    GoldP.prototype.draw = function(c) {
+      c.save(); c.translate(this.x, this.y); c.rotate(this.rot);
+      c.globalAlpha = Math.max(0, this.a); c.fillStyle = this.c;
+      c.beginPath(); c.arc(0, 0, this.sz, 0, 6.28); c.fill(); c.restore();
+    };
 
-      function GoldParticle(x, y) {
-        this.x = x; this.y = y;
-        var angle = Math.random() * Math.PI * 2;
-        var speed = 2 + Math.random() * 5;
-        this.vx = Math.cos(angle) * speed;
-        this.vy = Math.sin(angle) * speed;
-        this.size = 2 + Math.random() * 4;
-        this.alpha = 1;
-        this.rotation = Math.random() * Math.PI * 2;
-        this.rotSpeed = (Math.random() - 0.5) * 0.2;
-        this.gravity = 0.02; this.life = 1;
-        this.decay = 0.008 + Math.random() * 0.006;
-        var r = Math.random();
-        if (r < 0.5) this.color = '#C4A882';
-        else if (r < 0.8) this.color = '#D4BC96';
-        else this.color = '#E8D5B8';
-      }
-      GoldParticle.prototype.update = function() {
-        this.vy += this.gravity; this.vx *= 0.98; this.vy *= 0.98;
-        this.x += this.vx; this.y += this.vy;
-        this.rotation += this.rotSpeed; this.life -= this.decay;
-        this.alpha = this.life; this.size *= 0.998;
-      };
-      GoldParticle.prototype.draw = function(c) {
-        c.save(); c.translate(this.x, this.y); c.rotate(this.rotation);
-        c.globalAlpha = Math.max(0, this.alpha); c.fillStyle = this.color;
-        c.beginPath(); c.arc(0, 0, this.size, 0, Math.PI * 2); c.fill();
-        c.restore();
-      };
-      GoldParticle.prototype.dead = function() { return this.life <= 0; };
+    function emitTear(x, y, n) { for (var i = 0; i < n; i++) parts.push(new PaperBit(x + (Math.random()-0.5)*40, y + (Math.random()-0.5)*10, true)); }
+    function emitGold(x, y) { for (var i = 0; i < 60; i++) bParts.push(new GoldP(x, y)); }
 
-      function emitTearParticles(x, y, count) {
-        for (var i = 0; i < count; i++)
-          particles.push(new PaperBit(x + (Math.random() - 0.5) * 50, y + (Math.random() - 0.5) * 15, true));
-      }
+    function animP() {
+      pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+      parts = parts.filter(function(p) { return p.life > 0; });
+      parts.forEach(function(p) { p.update(); p.draw(pCtx); });
+      bCtx.clearRect(0, 0, bCanvas.width, bCanvas.height);
+      bParts = bParts.filter(function(p) { return p.life > 0; });
+      bParts.forEach(function(p) { p.update(); p.draw(bCtx); });
+      requestAnimationFrame(animP);
+    }
+    animP();
 
-      function emitCurlParticles(x, y, count) {
-        for (var i = 0; i < count; i++) {
-          var p = new PaperBit(x + (Math.random() - 0.5) * 60, y, false);
-          p.vy = 0.5 + Math.random() * 2; p.vx = (Math.random() - 0.5) * 2;
-          p.size = 1 + Math.random() * 2; p.decay = 0.008 + Math.random() * 0.01;
-          particles.push(p);
-        }
-      }
+    var fortunes = [
+      { theme: '平稳顺遂', yi: ['出行','会友','洽谈'], ji: ['动土','安葬','破土'], text: '今日整体平和，诸事相宜。行事需沉稳，不宜急躁。遇事宜缓不宜急，稳扎稳打方得始终。' },
+      { theme: '贵人相助', yi: ['祭祀','祈福','栽种'], ji: ['嫁娶','移徙','入宅'], text: '今日运势上佳，贵人星临。凡谋必利，宜积极行动。适合开启新计划，贵人自会现身。' },
+      { theme: '蓄势待发', yi: ['开市','交易','纳财'], ji: ['开仓','出货','远行'], text: '财运渐旺，宜守不宜攻。静待时机成熟，自然水到渠成。注意休养身心，蓄积力量。' },
+      { theme: '否极泰来', yi: ['修造','动土','安床'], ji: ['开光','祈福','求嗣'], text: '阴极阳生，转机将至。虽有小阻，终将化险为夷。宜坚定信念，静候佳音。' },
+      { theme: '万事如意', yi: ['纳采','嫁娶','开市'], ji: ['安葬','行丧'], text: '今日大吉，诸事皆宜。宜大胆行事，把握良机。天时地利人和，万事亨通。' },
+      { theme: '韬光养晦', yi: ['学习','思考','内省'], ji: ['张扬','争讼','远行'], text: '宜静不宜动，收敛锋芒。内修德行，外待时机。韬光养晦日，厚积薄发时。' }
+    ];
 
-      function emitManifestBurst(x, y) {
-        for (var i = 0; i < 60; i++) burstParticles.push(new GoldParticle(x, y));
-      }
+    function updateDate() {
+      var now = new Date();
+      var months = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+      var weekdays = ['日','一','二','三','四','五','六'];
+      document.getElementById('monthLabel').textContent = months[now.getMonth()];
+      document.getElementById('dayNumber').textContent = now.getDate();
+      document.getElementById('weekdayLabel').textContent = '星期' + weekdays[now.getDay()];
+      var HH = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+      var EE = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+      document.getElementById('lunarLabel').textContent = HH[(now.getFullYear()-4)%10] + EE[(now.getFullYear()-4)%12] + '年';
+    }
+    updateDate();
 
-      function animateParticles() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        particles = particles.filter(function(p) { return !p.dead(); });
-        particles.forEach(function(p) { p.update(); p.draw(ctx); });
-        burstCtx.clearRect(0, 0, burstCanvas.width, burstCanvas.height);
-        burstParticles = burstParticles.filter(function(p) { return !p.dead(); });
-        burstParticles.forEach(function(p) { p.update(); p.draw(burstCtx); });
-        requestAnimationFrame(animateParticles);
-      }
-      animateParticles();
+    function drawStub() {
+      var sc = document.getElementById('stubCanvas');
+      sc.width = 280; sc.height = 400;
+      var g = sc.getContext('2d');
 
-      var fortunes = [
-        { theme: '平稳顺遂', yi: ['出行', '会友', '洽谈'], ji: ['动土', '安葬', '破土'], text: '今日整体平和，诸事相宜。行事需沉稳，不宜急躁。遇事宜缓不宜急，稳扎稳打方得始终。' },
-        { theme: '贵人相助', yi: ['祭祀', '祈福', '栽种'], ji: ['嫁娶', '移徙', '入宅'], text: '今日运势上佳，贵人星临。凡谋必利，宜积极行动。适合开启新计划，贵人自会现身。' },
-        { theme: '蓄势待发', yi: ['开市', '交易', '纳财'], ji: ['开仓', '出货', '远行'], text: '财运渐旺，宜守不宜攻。静待时机成熟，自然水到渠成。注意休养身心，蓄积力量。' },
-        { theme: '否极泰来', yi: ['修造', '动土', '安床'], ji: ['开光', '祈福', '求嗣'], text: '阴极阳生，转机将至。虽有小阻，终将化险为夷。宜坚定信念，静候佳音。' },
-        { theme: '万事如意', yi: ['纳采', '嫁娶', '开市'], ji: ['安葬', '行丧'], text: '今日大吉，诸事皆宜。宜大胆行事，把握良机。天时地利人和，万事亨通。' },
-        { theme: '韬光养晦', yi: ['学习', '思考', '内省'], ji: ['张扬', '争讼', '远行'], text: '宜静不宜动，收敛锋芒。内修德行，外待时机。韬光养晦日，厚积薄发时。' }
-      ];
+      g.fillStyle = '#FFFFFF';
+      g.shadowColor = 'rgba(0,0,0,0.08)';
+      g.shadowBlur = 20;
+      g.shadowOffsetY = 4;
+      g.fillRect(0, 0, 280, 400);
+      g.shadowColor = 'transparent';
 
-      var monthText = '', dayText = '', weekdayText = '', lunarText = '';
+      var grad = g.createLinearGradient(0, 0, 0, 40);
+      grad.addColorStop(0, '#F0F0F0');
+      grad.addColorStop(1, '#E8E8E8');
+      g.fillStyle = grad;
+      g.fillRect(0, 0, 280, 40);
 
-      function updateDate() {
-        var now = new Date();
-        var months = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
-        var weekdays = ['日','一','二','三','四','五','六'];
-        monthText = months[now.getMonth()];
-        dayText = String(now.getDate());
-        weekdayText = '星期' + weekdays[now.getDay()];
-        var heavenly = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
-        var earthly = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
-        var yearGan = heavenly[(now.getFullYear() - 4) % 10];
-        var yearZhi = earthly[(now.getFullYear() - 4) % 12];
-        lunarText = yearGan + yearZhi + '年';
-        document.getElementById('monthLabel').textContent = monthText;
-        document.getElementById('dayNumber').textContent = dayText;
-        document.getElementById('weekdayLabel').textContent = weekdayText;
-        document.getElementById('lunarLabel').textContent = lunarText;
-      }
-      updateDate();
-
-      function renderPageToCanvas() {
-        var c = document.createElement('canvas');
-        c.width = 280; c.height = 400;
-        var g = c.getContext('2d');
-        g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, 280, 400);
-        var grad = g.createLinearGradient(0, 0, 0, 40);
-        grad.addColorStop(0, '#F0F0F0'); grad.addColorStop(1, '#E8E8E8');
-        g.fillStyle = grad; g.fillRect(0, 0, 280, 40);
-        [30,60,90,120,150,180,210,240].forEach(function(x) {
-          g.beginPath(); g.arc(x, 20, 4, 0, Math.PI * 2);
-          g.fillStyle = '#E0DDD6'; g.fill();
-          g.strokeStyle = 'rgba(0,0,0,0.05)'; g.lineWidth = 0.5; g.stroke();
-        });
-        g.setLineDash([3,3]); g.strokeStyle = '#D0D0D0'; g.lineWidth = 1;
-        g.beginPath(); g.moveTo(0, 40); g.lineTo(280, 40); g.stroke(); g.setLineDash([]);
-        g.textAlign = 'center'; g.textBaseline = 'middle';
-        g.fillStyle = '#888888'; g.font = '300 14px "Noto Serif SC", serif';
-        g.fillText(monthText, 140, 72);
-        g.fillStyle = '#1C1C1C'; g.font = '200 80px "Noto Serif SC", serif';
-        g.fillText(dayText, 140, 155);
-        g.fillStyle = '#888888'; g.font = '300 14px "Noto Serif SC", serif';
-        g.fillText(weekdayText, 140, 200);
-        g.fillStyle = '#AAAAAA'; g.font = '300 12px "Noto Serif SC", serif';
-        g.fillText(lunarText, 140, 228);
-        g.fillStyle = '#CCCCCC'; g.font = '300 11px "Noto Serif SC", serif';
-        g.fillText('轻触撕开', 140, 378);
-        return c;
-      }
-
-      function drawStub() {
-        var stubCanvas = document.getElementById('stubCanvas');
-        stubCanvas.width = 280; stubCanvas.height = 400;
-        var sc = stubCanvas.getContext('2d');
-        sc.fillStyle = '#FFFFFF'; sc.fillRect(0, 0, 280, 400);
-        sc.shadowColor = 'rgba(0,0,0,0.06)'; sc.shadowBlur = 16; sc.shadowOffsetY = 6;
-        sc.fillStyle = '#FFFFFF'; sc.fillRect(0, 0, 280, 400);
-        sc.shadowColor = 'transparent';
-        sc.fillStyle = '#F0F0F0'; sc.fillRect(0, 0, 280, 40);
-        [30,60,90,120,150,180,210,240].forEach(function(x) {
-          sc.beginPath(); sc.arc(x, 20, 4, 0, Math.PI * 2);
-          sc.fillStyle = '#E0DDD6'; sc.fill();
-        });
-        sc.beginPath(); sc.moveTo(0, 40);
-        var sx = 0;
-        while (sx < 280) {
-          var jagH = 2 + Math.random() * 8;
-          var step1 = 2 + Math.random() * 4;
-          sc.lineTo(sx + step1, 40 - jagH); sx += step1;
-          var step2 = 2 + Math.random() * 4;
-          sc.lineTo(sx + step2, 40 + Math.random() * 2); sx += step2;
-        }
-        sc.lineTo(280, 40); sc.lineTo(280, 0); sc.lineTo(0, 0); sc.closePath();
-        sc.fillStyle = '#FFFFFF'; sc.fill();
-        sc.fillStyle = '#F5F5F3'; sc.fillRect(0, 52, 280, 348);
-        sc.fillStyle = '#E0E0E0'; sc.font = '300 11px "Noto Serif SC", serif';
-        sc.textAlign = 'center'; sc.textBaseline = 'middle';
-        sc.fillText('· · ·', 140, 200);
-      }
-
-      var isTearing = false;
-      var isTorn = false;
-
-      function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
-      function easeIn(t) { return t * t * t; }
-      function easeInOut(t) { return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2; }
-
-      function tearPage() {
-        if (isTearing || isTorn) return;
-        isTearing = true;
-
-        var page = document.getElementById('calendarPage');
-        var stack = document.getElementById('calendarStack');
-        var pageRect = page.getBoundingClientRect();
-
-        page.style.visibility = 'hidden';
-        drawStub();
-
-        var pageImage = renderPageToCanvas();
-
-        var NUM = 24;
-        var PAGE_W = 280;
-        var PAGE_H = 400;
-        var STRIP_H = PAGE_H / NUM;
-
-        var stripContainer = document.createElement('div');
-        stripContainer.style.cssText = 'position:absolute;top:0;left:0;width:' + PAGE_W + 'px;height:' + PAGE_H + 'px;z-index:10;transform-style:preserve-3d;';
-
-        var stripWrappers = [];
-
-        var parentEl = stripContainer;
-
-        for (var i = 0; i < NUM; i++) {
-          var wrapper = document.createElement('div');
-          wrapper.style.cssText = 'position:absolute;top:' + (i === 0 ? '0' : STRIP_H + 'px') + ';left:0;width:' + PAGE_W + 'px;height:' + (PAGE_H - i * STRIP_H) + 'px;transform-origin:top center;transform-style:preserve-3d;overflow:visible;';
-
-          var front = document.createElement('div');
-          front.style.cssText = 'position:absolute;top:0;left:0;width:' + PAGE_W + 'px;height:' + STRIP_H + 'px;overflow:hidden;backface-visibility:hidden;';
-
-          var stripCanvas = document.createElement('canvas');
-          stripCanvas.width = PAGE_W;
-          stripCanvas.height = Math.ceil(STRIP_H) + 1;
-          stripCanvas.style.cssText = 'width:' + PAGE_W + 'px;height:' + STRIP_H + 'px;display:block;';
-
-          var sctx = stripCanvas.getContext('2d');
-          sctx.drawImage(pageImage, 0, i * STRIP_H, PAGE_W, Math.ceil(STRIP_H) + 1, 0, 0, PAGE_W, Math.ceil(STRIP_H) + 1);
-
-          front.appendChild(stripCanvas);
-
-          var back = document.createElement('div');
-          back.style.cssText = 'position:absolute;top:0;left:0;width:' + PAGE_W + 'px;height:' + STRIP_H + 'px;backface-visibility:hidden;transform:rotateX(180deg);background:linear-gradient(180deg,#F0EDE6,#E8E4DB);';
-
-          var backInner = document.createElement('div');
-          backInner.style.cssText = 'position:absolute;inset:0;opacity:0.03;background:repeating-linear-gradient(0deg,transparent,transparent 6px,#1C1C1C 6px,#1C1C1C 7px);';
-          back.appendChild(backInner);
-
-          wrapper.appendChild(front);
-          wrapper.appendChild(back);
-
-          parentEl.appendChild(wrapper);
-          parentEl = wrapper;
-
-          stripWrappers.push(wrapper);
-        }
-
-        stack.appendChild(stripContainer);
-
-        var startTime = performance.now();
-        var curlDuration = 2200;
-        var fallDuration = 600;
-        var totalDuration = curlDuration + fallDuration;
-
-        var stubShown = false;
-        var tearLineY = pageRect.top + 40;
-
-        var MAX_ANGLE = 8;
-
-        function animate(now) {
-          var elapsed = now - startTime;
-          var progress = Math.min(elapsed / totalDuration, 1);
-
-          if (progress <= curlDuration / totalDuration) {
-            var curlProg = progress / (curlDuration / totalDuration);
-
-            for (var si = 0; si < NUM; si++) {
-              var fromBottom = NUM - 1 - si;
-              var delay = fromBottom * 0.018;
-              var stripProg = Math.max(0, Math.min(1, (curlProg - delay) / 0.55));
-              var ep = easeInOut(stripProg);
-              var angle = ep * MAX_ANGLE;
-
-              var wobbleAmp = 1.5 * Math.sin(curlProg * Math.PI) * (1 - stripProg * 0.7);
-              var wobble = Math.sin(curlProg * Math.PI * 8 + si * 0.6) * wobbleAmp;
-
-              stripWrappers[si].style.transform = 'rotateX(' + (-(angle + wobble)) + 'deg)';
-            }
-
-            if (curlProg > 0.1 && !stubShown) {
-              stubShown = true;
-              document.getElementById('calendarStub').classList.add('visible');
-            }
-
-            if (curlProg > 0.05 && curlProg < 0.7) {
-              var intensity = Math.sin(curlProg / 0.7 * Math.PI);
-              if (Math.random() < intensity * 0.5) {
-                emitTearParticles(
-                  pageRect.left + Math.random() * PAGE_W,
-                  tearLineY + Math.random() * 15,
-                  1
-                );
-              }
-            }
-
-            if (curlProg > 0.15 && curlProg < 0.75) {
-              if (Math.random() < 0.2) {
-                var curlY = pageRect.top + PAGE_H * (1 - curlProg * 0.7);
-                emitCurlParticles(
-                  pageRect.left + PAGE_W * 0.5 + (Math.random() - 0.5) * 80,
-                  curlY, 1
-                );
-              }
-            }
-          } else {
-            var fallProg = (progress - curlDuration / totalDuration) / (fallDuration / totalDuration);
-            var fallEased = easeIn(fallProg);
-
-            if (!stubShown) {
-              stubShown = true;
-              document.getElementById('calendarStub').classList.add('visible');
-            }
-
-            stripContainer.style.transform = 'translateY(' + (fallEased * 400) + 'px) rotateZ(' + (-fallEased * 8) + 'deg)';
-            stripContainer.style.opacity = String(1 - fallEased);
-          }
-
-          if (progress < 1) {
-            requestAnimationFrame(animate);
-          } else {
-            stripContainer.remove();
-            isTorn = true;
-            showFortune();
-          }
-        }
-
-        requestAnimationFrame(animate);
-      }
-
-      function showFortune() {
-        var fortune = fortunes[Math.floor(Math.random() * fortunes.length)];
-        document.getElementById('fortuneTheme').textContent = fortune.theme;
-        var yiContainer = document.getElementById('yiItems');
-        var jiContainer = document.getElementById('jiItems');
-        yiContainer.innerHTML = ''; jiContainer.innerHTML = '';
-        fortune.yi.forEach(function(item) {
-          var div = document.createElement('div'); div.className = 'item'; div.textContent = item;
-          yiContainer.appendChild(div);
-        });
-        fortune.ji.forEach(function(item) {
-          var div = document.createElement('div'); div.className = 'item'; div.textContent = item;
-          jiContainer.appendChild(div);
-        });
-        document.getElementById('interpretationText').textContent = fortune.text;
-        setTimeout(function() {
-          document.getElementById('fortuneWrapper').classList.add('visible');
-        }, 200);
-      }
-
-      document.getElementById('calendarPage').addEventListener('click', tearPage);
-
-      var lastTap = 0;
-      document.getElementById('fortuneWrapper').addEventListener('click', function() {
-        var now = Date.now();
-        if (now - lastTap < 350) manifest();
-        lastTap = now;
+      [30,60,90,120,150,180,210,240].forEach(function(x) {
+        g.beginPath();
+        g.arc(x, 20, 4, 0, 6.28);
+        g.fillStyle = '#E0DDD6';
+        g.fill();
+        g.strokeStyle = 'rgba(0,0,0,0.05)';
+        g.lineWidth = 0.5;
+        g.stroke();
       });
 
-      function manifest() {
-        var card = document.getElementById('fortuneCard');
-        var rect = card.getBoundingClientRect();
-        emitManifestBurst(rect.left + rect.width / 2, rect.top + rect.height / 2);
-        document.getElementById('glowCenter').classList.add('active');
-        card.style.transition = 'transform 0.3s ease, box-shadow 0.3s ease';
-        card.style.transform = 'scale(1.02)';
-        card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.03), 0 16px 40px rgba(196,168,130,0.15)';
-        setTimeout(function() {
-          card.style.transform = 'scale(1)';
-          card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.03), 0 12px 32px rgba(0,0,0,0.06)';
-        }, 400);
+      g.beginPath();
+      g.moveTo(0, 40);
+      var tx = 0;
+      while (tx < 280) {
+        var h = 2 + Math.random() * 10;
+        var w = 1.5 + Math.random() * 4;
+        g.lineTo(tx + w, 40 - h);
+        tx += w;
+        var w2 = 1.5 + Math.random() * 4;
+        g.lineTo(tx + w2, 40 + Math.random() * 2);
+        tx += w2;
       }
-    })();
+      g.lineTo(280, 40);
+      g.lineTo(280, 0);
+      g.lineTo(0, 0);
+      g.closePath();
+      g.fillStyle = '#FFFFFF';
+      g.fill();
+      g.strokeStyle = 'rgba(0,0,0,0.04)';
+      g.lineWidth = 0.3;
+      g.stroke();
+
+      g.fillStyle = '#FFFFFF';
+      g.fillRect(0, 42, 280, 358);
+
+      g.textAlign = 'center';
+      g.textBaseline = 'middle';
+
+      var now = new Date();
+      var next = new Date(now);
+      next.setDate(next.getDate() + 1);
+      var months = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+      var weekdays = ['日','一','二','三','四','五','六'];
+      var HH = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+      var EE = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+
+      g.fillStyle = '#888888';
+      g.font = '300 14px "Noto Serif SC",serif';
+      g.fillText(months[next.getMonth()], 140, 72);
+
+      g.fillStyle = '#1C1C1C';
+      g.font = '200 80px "Noto Serif SC",serif';
+      g.fillText(String(next.getDate()), 140, 155);
+
+      g.fillStyle = '#888888';
+      g.font = '300 14px "Noto Serif SC",serif';
+      g.fillText('星期' + weekdays[next.getDay()], 140, 200);
+
+      g.fillStyle = '#AAAAAA';
+      g.font = '300 12px "Noto Serif SC",serif';
+      g.fillText(HH[(next.getFullYear()-4)%10] + EE[(next.getFullYear()-4)%12] + '年', 140, 228);
+    }
+
+    var isTearing = false, isTorn = false;
+
+    function easeIO(t) { return t<0.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; }
+    function easeI(t) { return t*t*t; }
+    function easeO(t) { return 1-Math.pow(1-t,3); }
+
+    function tearPage() {
+      if (isTearing || isTorn) return;
+      isTearing = true;
+
+      var wrapper = document.getElementById('pageWrapper');
+      var stack = document.getElementById('calendarStack');
+      var stackRect = stack.getBoundingClientRect();
+      var tearLineScreenY = stackRect.top + 40;
+
+      drawStub();
+
+      var tearPageEl = document.createElement('div');
+      tearPageEl.style.cssText = 'position:absolute;top:40px;left:0;width:280px;height:360px;z-index:15;transform-style:preserve-3d;transform-origin:top center;cursor:default;';
+      stack.appendChild(tearPageEl);
+
+      var frontFace = document.createElement('div');
+      frontFace.style.cssText = 'position:absolute;top:0;left:0;width:280px;height:360px;backface-visibility:hidden;overflow:hidden;background:#FFFFFF;';
+      var frontInner = document.createElement('div');
+      frontInner.style.cssText = 'position:absolute;top:-40px;left:0;width:280px;height:400px;';
+      frontInner.innerHTML = wrapper.querySelector('.page-front').innerHTML;
+      frontFace.appendChild(frontInner);
+      tearPageEl.appendChild(frontFace);
+
+      var backFace = document.createElement('div');
+      backFace.style.cssText = 'position:absolute;top:0;left:0;width:280px;height:360px;backface-visibility:hidden;transform:rotateX(-180deg);overflow:hidden;background:linear-gradient(180deg,#E8E4DB 0%,#F0ECE3 40%,#EBE7DE 100%);';
+      var backTex = document.createElement('div');
+      backTex.style.cssText = 'position:absolute;inset:0;opacity:0.03;background:repeating-linear-gradient(0deg,transparent,transparent 8px,#1C1C1C 8px,#1C1C1C 9px);';
+      backFace.appendChild(backTex);
+      var backCrease = document.createElement('div');
+      backCrease.style.cssText = 'position:absolute;top:0;left:50%;width:1px;height:100%;background:linear-gradient(180deg,transparent,rgba(0,0,0,0.04) 20%,rgba(0,0,0,0.04) 80%,transparent);';
+      backFace.appendChild(backCrease);
+      tearPageEl.appendChild(backFace);
+
+      wrapper.style.display = 'none';
+
+      var shadowEl = document.createElement('div');
+      shadowEl.style.cssText = 'position:absolute;top:40px;left:0;width:280px;height:360px;z-index:14;pointer-events:none;opacity:0;';
+      stack.appendChild(shadowEl);
+
+      var startTime = performance.now();
+      var peelDur = 1600, fallDur = 700, total = peelDur + fallDur;
+      var stubShown = false;
+
+      function animate(now) {
+        var elapsed = now - startTime;
+        var progress = Math.min(elapsed / total, 1);
+
+        if (progress <= peelDur / total) {
+          var pp = progress / (peelDur / total);
+          var ep = easeIO(pp);
+
+          var angle = ep * 175;
+          var wobble = Math.sin(pp * Math.PI * 6) * 2 * (1 - ep * 0.7);
+          var slightZ = Math.sin(pp * Math.PI * 4) * 1.5 * (1 - ep * 0.5);
+
+          tearPageEl.style.transform = 'rotateX(' + (angle + wobble) + 'deg) rotateZ(' + slightZ + 'deg)';
+
+          if (angle < 90) {
+            var si = angle / 90;
+            shadowEl.style.opacity = String(si * 0.25);
+            shadowEl.style.background = 'linear-gradient(180deg, rgba(0,0,0,' + (si * 0.12) + ') 0%, rgba(0,0,0,' + (si * 0.06) + ') 30%, transparent 100%)';
+            shadowEl.style.height = (30 + si * 40) + 'px';
+          } else {
+            var bs = (angle - 90) / 90;
+            shadowEl.style.opacity = String((1 - bs) * 0.15);
+            shadowEl.style.background = 'linear-gradient(0deg, rgba(0,0,0,' + ((1-bs) * 0.08) + ') 0%, transparent 50%)';
+            shadowEl.style.height = '30px';
+          }
+
+          if (pp > 0.05 && !stubShown) {
+            stubShown = true;
+            document.getElementById('calendarStub').classList.add('visible');
+          }
+
+          if (pp > 0.03 && pp < 0.5) {
+            var intensity = Math.sin(pp / 0.5 * Math.PI);
+            if (Math.random() < intensity * 0.5) {
+              emitTear(stackRect.left + Math.random() * 280, tearLineScreenY + Math.random() * 10, 1);
+            }
+          }
+
+        } else {
+          var fp = (progress - peelDur / total) / (fallDur / total);
+          var fe = easeI(fp);
+
+          if (!stubShown) {
+            stubShown = true;
+            document.getElementById('calendarStub').classList.add('visible');
+          }
+
+          var fallY = fe * 500;
+          var fallZ = fe * 15;
+          tearPageEl.style.transform = 'rotateX(175deg) rotateZ(' + (fallZ + Math.sin(fp * 3) * 5) + 'deg) translateY(' + fallY + 'px)';
+          tearPageEl.style.opacity = String(1 - fe);
+          shadowEl.style.opacity = '0';
+        }
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          tearPageEl.remove();
+          shadowEl.remove();
+          isTorn = true;
+          showFortune();
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+
+    function showFortune() {
+      var f = fortunes[Math.floor(Math.random() * fortunes.length)];
+      document.getElementById('fortuneTheme').textContent = f.theme;
+      var yc = document.getElementById('yiItems'), jc = document.getElementById('jiItems');
+      yc.innerHTML = ''; jc.innerHTML = '';
+      f.yi.forEach(function(t) { var d = document.createElement('div'); d.className='item'; d.textContent=t; yc.appendChild(d); });
+      f.ji.forEach(function(t) { var d = document.createElement('div'); d.className='item'; d.textContent=t; jc.appendChild(d); });
+      document.getElementById('interpretationText').textContent = f.text;
+      setTimeout(function() { document.getElementById('fortuneWrapper').classList.add('visible'); }, 200);
+    }
+
+    document.getElementById('pageWrapper').addEventListener('click', tearPage);
+
+    var lastTap = 0;
+    document.getElementById('fortuneWrapper').addEventListener('click', function() {
+      var n = Date.now(); if (n - lastTap < 350) manifest(); lastTap = n;
+    });
+
+    function manifest() {
+      var card = document.getElementById('fortuneCard');
+      var r = card.getBoundingClientRect();
+      emitGold(r.left + r.width/2, r.top + r.height/2);
+      document.getElementById('glowCenter').classList.add('active');
+      card.style.transition = 'transform 0.3s ease, box-shadow 0.3s ease';
+      card.style.transform = 'scale(1.02)';
+      card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.03), 0 16px 40px rgba(196,168,130,0.15)';
+      setTimeout(function() {
+        card.style.transform = 'scale(1)';
+        card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.03), 0 12px 32px rgba(0,0,0,0.06)';
+      }, 400);
+    }
+  })();
   </script>
 </body>
 </html>

@@ -1,8 +1,9 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SIGN_POOL, PERSONA_TO_SIGN } from '../../data/qiuqianSigns';
 import { useShake, requestMotionPermission, hasMotionSensor } from './useShake';
 import Tube3D from './Tube3D';
+import ShareSheet from '../../shell/ShareSheet';
 import styles from './Qiuqian.module.css';
 
 const STATES = {
@@ -28,6 +29,8 @@ export default function Qiuqian({ personaId, active }) {
 
   useEffect(() => {
     setPhase(STATES.IDLE);
+    setManifested(false);
+    setShareOpen(false);
   }, [personaId, active]);
 
   // 每次抽签前重选 chosenStick（让"摇出的是哪根"看起来真的随机）
@@ -35,6 +38,7 @@ export default function Qiuqian({ personaId, active }) {
 
   function startDraw() {
     if (phase !== STATES.IDLE) return;
+    setManifested(false);
     setChosenIndex(Math.floor(Math.random() * 9));
     setPhase(STATES.SHAKING);
     // 时序：shaking 2.2s → revealing（chosen 签飞到屏幕前，等用户点击）
@@ -47,10 +51,42 @@ export default function Qiuqian({ personaId, active }) {
   }
 
   const [manifested, setManifested] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   function handleManifest() {
     if (phase !== STATES.DRAWN) return;
     setManifested(true);
   }
+
+  // 签卡 3D tilt
+  const cardWrapRef = useRef(null);
+  const [tilt, setTilt] = useState({ rx: 0, ry: 0 });
+
+  function handleCardMouseMove(e) {
+    const rect = cardWrapRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const px = (e.clientX - rect.left) / rect.width - 0.5;
+    const py = (e.clientY - rect.top) / rect.height - 0.5;
+    // ±10° 倾斜：rotateX 用 -py（光标在上方时卡片往后倾），rotateY 用 px
+    setTilt({ rx: -py * 14, ry: px * 14 });
+  }
+  function handleCardMouseLeave() {
+    setTilt({ rx: 0, ry: 0 });
+  }
+
+  // 手机 DeviceOrientation tilt（基于陀螺仪）
+  useEffect(() => {
+    if (phase !== STATES.DRAWN) return;
+    function onOrient(e) {
+      const beta = e.beta || 0;   // 前后倾斜
+      const gamma = e.gamma || 0; // 左右倾斜
+      // 手机正常拿在手里 beta ≈ 60°，以此为中心
+      const dx = Math.max(-12, Math.min(12, (beta - 60) * 0.4));
+      const dy = Math.max(-12, Math.min(12, gamma * 0.4));
+      setTilt({ rx: -dx, ry: dy });
+    }
+    window.addEventListener('deviceorientation', onOrient);
+    return () => window.removeEventListener('deviceorientation', onOrient);
+  }, [phase]);
 
   // 显化粒子配置（component 生命周期内只算一次，stable）
   const particles = useMemo(
@@ -123,46 +159,96 @@ export default function Qiuqian({ personaId, active }) {
             className={styles.signStage}
           >
             <div
-              className={`${styles.signCard} ${manifested ? styles.manifested : ''}`}
-              style={{ '--accent': sign.accent }}
+              ref={cardWrapRef}
+              className={styles.cardWrap}
               onDoubleClick={handleManifest}
+              onMouseMove={handleCardMouseMove}
+              onMouseLeave={handleCardMouseLeave}
+              style={{
+                transform: `perspective(900px) rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)`,
+              }}
             >
-              <div className={styles.signWatermark}>占</div>
-              <div className={styles.signHeader}>今日灵签</div>
-              <div className={styles.signBody}>
-                {/* row-reverse 让 DOM 顺序对应"从右往左"的视觉 */}
-                <div className={`${styles.col} ${styles.colHeading}`}>
-                  {sign.order}{sign.tier}
+              <div className={styles.cardBorder} />
+              <div className={styles.signCard}>
+                {/* 签等级 */}
+                <div className={styles.grade}>
+                  <span
+                    className={`${styles.gradeText} ${manifested ? styles.gradeShimmer : ''}`}
+                  >
+                    {sign.order} · {sign.tier}
+                  </span>
+                  <div className={styles.gradeRule} />
                 </div>
-                {sign.poem
-                  .replace(/\n/g, '')
-                  .split(/(?<=。)/)
-                  .filter(Boolean)
-                  .map((line, i) => (
-                    <div key={i} className={`${styles.col} ${styles.colPoem}`}>
-                      {line}
+
+                {/* 诗 4 列竖排（按"，"和"。"拆，每个标点一列）*/}
+                <div className={styles.poemWrap}>
+                  {sign.poem
+                    .replace(/\n/g, '')
+                    .split(/(?<=[，。])/)
+                    .filter(Boolean)
+                    .map((line, i) => (
+                      <span key={i} className={styles.poemLine}>
+                        {line}
+                      </span>
+                    ))}
+                  {/* 右下角"好灵"印章 */}
+                  <img src="/img/seal.png" alt="" className={styles.poemSeal} />
+                </div>
+
+                {/* 吉祥分隔线：钻石 + 四瓣花家纹 */}
+                <div className={styles.auspicious}>
+                  <div className={styles.auspLine} />
+                  <div className={styles.auspCenter}>
+                    <div className={`${styles.auspDiamond} ${styles.diaSm}`} />
+                    <div className={styles.auspDiamond} />
+                    <div className={styles.auspMedallion}>
+                      <svg viewBox="0 0 40 40" width="40" height="40" fill="none">
+                        <path d="M20 18 C17.5 13 14 9.5 20 6.5 C26 9.5 22.5 13 20 18Z" fill="#5C3D2E"/>
+                        <path d="M20 22 C22.5 27 26 30.5 20 33.5 C14 30.5 17.5 27 20 22Z" fill="#5C3D2E"/>
+                        <path d="M18 20 C13 22.5 9.5 26 6.5 20 C9.5 14 13 17.5 18 20Z" fill="#5C3D2E"/>
+                        <path d="M22 20 C27 17.5 30.5 14 33.5 20 C30.5 26 27 22.5 22 20Z" fill="#5C3D2E"/>
+                        <g transform="rotate(45 20 20)">
+                          <path d="M20 18 C17.5 13 14 9.5 20 6.5 C26 9.5 22.5 13 20 18Z" fill="#5C3D2E" opacity="0.45" transform="scale(0.72) translate(5.6 5.6)"/>
+                          <path d="M20 22 C22.5 27 26 30.5 20 33.5 C14 30.5 17.5 27 20 22Z" fill="#5C3D2E" opacity="0.45" transform="scale(0.72) translate(5.6 5.6)"/>
+                          <path d="M18 20 C13 22.5 9.5 26 6.5 20 C9.5 14 13 17.5 18 20Z" fill="#5C3D2E" opacity="0.45" transform="scale(0.72) translate(5.6 5.6)"/>
+                          <path d="M22 20 C27 17.5 30.5 14 33.5 20 C30.5 26 27 22.5 22 20Z" fill="#5C3D2E" opacity="0.45" transform="scale(0.72) translate(5.6 5.6)"/>
+                        </g>
+                        <circle cx="20" cy="20" r="3.2" fill="#5C3D2E"/>
+                        <circle cx="20" cy="20" r="1.5" fill="#FAF4E8"/>
+                      </svg>
                     </div>
-                  ))}
-                {(() => {
-                  const parts = sign.xie.split(/\s+/).filter(Boolean);
-                  const half = Math.ceil(parts.length / 2);
-                  return (
-                    <div className={styles.colGroup}>
-                      <div className={styles.col}>
-                        <span className={styles.colLabel}>解</span>
-                        {parts.slice(0, half).join('　')}
-                      </div>
-                      <div className={styles.col}>
-                        {parts.slice(half).join('　')}
-                      </div>
-                    </div>
-                  );
-                })()}
+                    <div className={styles.auspDiamond} />
+                    <div className={`${styles.auspDiamond} ${styles.diaSm}`} />
+                  </div>
+                  <div className={styles.auspLine} />
+                </div>
+
+                {/* 解读框 */}
+                <div className={styles.interp}>
+                  <p className={styles.interpP}>{sign.interpText}</p>
+                </div>
+
+                {/* 出处 */}
+                <div className={styles.foot}>
+                  <div className={styles.footLbl}>{sign.footerLabel}</div>
+                  <div className={styles.footTxt}>{sign.footerContent}</div>
+                </div>
               </div>
             </div>
             {!manifested && (
               <div className={styles.manifestHint}>双 击 显 化</div>
             )}
+            {/* 转发按钮 */}
+            <button
+              type="button"
+              className={styles.shareBtnSign}
+              onClick={() => setShareOpen(true)}
+              aria-label="转发"
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="#5C3D2E">
+                <path d="M14 9V5l7 7-7 7v-4.1c-5 0-8.5 1.6-11 5.1 1-5 4-10 11-11z" />
+              </svg>
+            </button>
             {manifested && (
               <div className={styles.manifestFx}>
                 {/* B · 粒子爆发：从签条中心爆出金色粒子 */}
@@ -181,6 +267,7 @@ export default function Qiuqian({ personaId, active }) {
           </motion.div>
         )}
       </AnimatePresence>
+      <ShareSheet open={shareOpen} onClose={() => setShareOpen(false)} />
     </div>
   );
 }

@@ -11,7 +11,10 @@ export const SIGN_POOL = [
     title: '',
     poem: '魏魏独步向云间，玉殿千官第一班。\n富贵荣华天付汝，福如东海寿如山。',
     xie: '功名遂　福禄全　讼得理　病即愈　婚姻圆　诸事如意',
-    accent: '#C4A882',
+    interpText: '此签大吉，功名遂意，福禄双全。所谋之事，皆可成就。富贵荣华，天赐于汝，福寿绵长，诸事如意。',
+    footerLabel: '签诗出处',
+    footerContent: '观音灵签 · 第一签',
+    accent: '#5C3D2E',
   },
   {
     id: 'shang',
