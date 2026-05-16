@@ -1,0 +1,59 @@
+.bottomNav {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 50;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.tab.active {
+  color: white;
+  font-weight: 700;
+  font-size: 17px;
+}
+
+.toggleIcon {
+  opacity: 0.85;
+  margin-left: 2px;
+}
+
+.plusWrap {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.plusBtn {
+  width: 46px;
+  height: 30px;
+  border-radius: 8px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plusSign {
+  font-size: 28px;
+  font-weight: 300;
+  color: black;
+  line-height: 1;
+  margin-top: -2px;
+}

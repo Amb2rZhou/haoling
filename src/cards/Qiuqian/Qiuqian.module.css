@@ -1,0 +1,264 @@
+.bg {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #F2EFE9;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  color: #1C1C1C;
+  font-family: 'Noto Serif SC', 'Songti SC', serif;
+}
+
+/* 暖金光晕（取代之前的星空 + 暗金 glow）*/
+.glow {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(196, 168, 130, 0.28) 0%, rgba(196, 168, 130, 0.08) 45%, transparent 70%);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: pulse 4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.12); }
+}
+
+.permBtn {
+  position: absolute;
+  top: 110px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 18px;
+  font-size: 12px;
+  letter-spacing: 2px;
+  background: rgba(196, 168, 130, 0.15);
+  border: 1px solid rgba(196, 168, 130, 0.55);
+  color: #1C1C1C;
+  border-radius: 20px;
+  z-index: 40;
+  font-family: inherit;
+  backdrop-filter: blur(6px);
+}
+
+.tubeStage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 92px 0 130px;
+}
+
+.tubeWrap {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+}
+
+.hint {
+  flex-shrink: 0;
+  font-size: 14px;
+  letter-spacing: 6px;
+  opacity: 0.9;
+  text-align: center;
+  color: #888888;
+  font-weight: 400;
+  padding: 12px 0 4px;
+}
+
+.signStage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 24px 130px;
+  gap: 18px;
+}
+
+.manifestHint {
+  font-size: 13px;
+  letter-spacing: 8px;
+  color: #888888;
+  font-family: 'Noto Serif SC', serif;
+  text-align: center;
+  user-select: none;
+}
+
+/* 显化特效 A：金光扩散 + 屏幕闪光 */
+.manifestFx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+/* 粒子（B） */
+.particle {
+  position: absolute;
+  background: radial-gradient(circle, #fff4d4 0%, #d4af37 55%, transparent 80%);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.85);
+  pointer-events: none;
+}
+
+.signCard {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  text-align: center;
+  background-color: #f0e6cf;
+  background-image:
+    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.42 0 0 0 0 0.30 0 0 0 0 0.18 0 0 0 0.14 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at center, #f4ecd6 0%, #e8dcbf 100%);
+  background-blend-mode: multiply, normal;
+  border: 2px solid #1c1c1c;
+  padding: 28px 18px 24px;
+  box-shadow:
+    0 12px 32px rgba(28, 28, 28, 0.22),
+    0 2px 6px rgba(28, 28, 28, 0.12);
+}
+
+.signCard::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1px solid #1c1c1c;
+  pointer-events: none;
+}
+
+/* 横排顶部抬头 */
+.signHeader {
+  position: relative;
+  z-index: 2;
+  font-family: 'SanjiXiaoZhuan', 'Songti SC', 'Noto Serif SC', serif;
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: 14px;
+  color: #1c1c1c;
+  border-bottom: 1px solid #1c1c1c;
+  padding-bottom: 12px;
+  margin: 0 6px 16px;
+  text-align: center;
+}
+
+/* 中央"占"字水印 */
+.signWatermark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'SanjiXiaoZhuan', 'Songti SC', serif;
+  font-size: 280px;
+  color: rgba(28, 28, 28, 0.06);
+  pointer-events: none;
+  z-index: 0;
+  line-height: 1;
+  user-select: none;
+}
+
+/* 主体多列竖排，row-reverse 让 DOM 从左到右写但视觉从右到左 */
+.signBody {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: row-reverse;
+  gap: 6px;
+  min-height: 320px;
+  padding: 4px 4px 6px;
+}
+
+.col {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  flex: 1;
+  color: #1c1c1c;
+  font-size: 13px;
+  line-height: 2;
+  letter-spacing: 3px;
+  text-align: start;
+  font-family: 'Noto Serif SC', 'Songti SC', serif;
+}
+
+.colPoem {
+  flex: 0.7;
+  font-size: 18px;
+  letter-spacing: 6px;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+/* 解的两列包在 group 里，gap 小一点让它们紧贴 */
+.colGroup {
+  display: flex;
+  flex-direction: row-reverse;
+  gap: 0;
+  flex: 1.6;
+}
+
+.colGroup .col {
+  flex: 1;
+}
+
+/* 最右列：签序 + 等级，大字 */
+.colHeading {
+  flex: 0.7;
+  font-size: 26px;
+  letter-spacing: 14px;
+  font-weight: 600;
+  border-left: 1px solid rgba(28, 28, 28, 0.4);
+  padding: 4px 6px 4px 0;
+}
+
+.colLabel {
+  font-weight: 700;
+  font-size: 15px;
+  margin-block-end: 8px;
+  letter-spacing: 4px;
+}
+
+.signTitle {
+  font-size: 38px;
+  font-weight: 500;
+  letter-spacing: 10px;
+  margin: 0 0 22px;
+  color: #1C1C1C;
+}
+
+.poem {
+  font-size: 14px;
+  line-height: 2.4;
+  letter-spacing: 3px;
+  text-align: center;
+  white-space: pre-line;
+  color: #888888;
+  margin-bottom: 22px;
+}
+
+.divider {
+  width: 36px;
+  height: 1px;
+  background: #C4A882;
+  margin: 0 auto 22px;
+  opacity: 0.6;
+}
+
+.interpretation {
+  font-size: 13.5px;
+  line-height: 1.9;
+  letter-spacing: 0.3px;
+  white-space: pre-line;
+  color: #1C1C1C;
+  font-family: 'PingFang SC', system-ui, sans-serif;
+  text-align: left;
+  padding: 0 4px;
+}

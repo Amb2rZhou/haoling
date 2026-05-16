@@ -1,0 +1,29 @@
+[
+  {
+    "id": "shuangyu",
+    "name": "失恋小双鱼",
+    "age": 22,
+    "gender": "女",
+    "zodiac": "双鱼座",
+    "context": "近 7 天深夜刷悲伤治愈类 60%，搜索过「分手」「复合」",
+    "avatar": "🐟"
+  },
+  {
+    "id": "coder",
+    "name": "焦虑程序员",
+    "age": 28,
+    "gender": "男",
+    "zodiac": "金牛座",
+    "context": "996，凌晨 3 点常活跃，搜索「副业」「焦虑」「裸辞」",
+    "avatar": "💻"
+  },
+  {
+    "id": "shuangzi",
+    "name": "期末双子妹",
+    "age": 21,
+    "gender": "女",
+    "zodiac": "双子座",
+    "context": "凌晨 2 点刷塔罗 + emo 内容，期末周高频搜索「运势」",
+    "avatar": "📚"
+  }
+]

@@ -1,0 +1,71 @@
+.statusBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 44px;
+  padding: 0 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 100;
+  color: white;
+  font-size: 17px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.time {
+  font-feature-settings: 'tnum';
+  font-size: 17px;
+}
+
+.locArrow {
+  transform: rotate(-90deg);
+  margin-top: 1px;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.battery {
+  display: flex;
+  align-items: center;
+}
+
+.batteryBody {
+  width: 26px;
+  height: 13px;
+  border: 1.2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 4px;
+  padding: 1.2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.batteryFill {
+  width: 100%;
+  height: 100%;
+  background: #34C759;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.batteryTip {
+  width: 1.5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 0 1px 1px 0;
+  margin-left: 1px;
+}

@@ -1,0 +1,36 @@
+.bottomMeta {
+  position: absolute;
+  left: 16px;
+  bottom: 80px;
+  right: 90px;
+  z-index: 30;
+  pointer-events: none;
+  color: white;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+}
+
+.author {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.captionLine {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.caption {
+  font-size: 14.5px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.2px;
+  flex: 1;
+}
+
+.chevron {
+  flex-shrink: 0;
+  margin-top: 4px;
+  opacity: 0.9;
+}
