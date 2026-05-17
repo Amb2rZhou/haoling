@@ -1,0 +1,9 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/answer", "destination": "/answer.html" },
+    { "source": "/gallery", "destination": "/gallery.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

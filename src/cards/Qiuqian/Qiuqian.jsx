@@ -55,6 +55,10 @@ export default function Qiuqian({ personaId, active }) {
   function handleManifest() {
     if (phase !== STATES.DRAWN) return;
     setManifested(true);
+    // 双击显化时手机振动（Android 支持，iOS 静默忽略）
+    if (navigator.vibrate) {
+      navigator.vibrate([60, 30, 90, 30, 180]);
+    }
   }
 
   // 签卡 3D tilt

@@ -1,16 +1,55 @@
 .shell {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  /* 锁定 iPhone 14 系列的 9:19.5 手机比例 */
-  height: min(100vh, 100dvh, calc(100vw * 19.5 / 9));
-  aspect-ratio: 9 / 19.5;
+  inset: 0;
+  margin: auto;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
   max-width: 480px;
-  max-height: 1040px;
   background: #000;
   overflow: hidden;
   color: white;
+}
+
+/* 桌面（宽屏）才锁手机比例 + 加手机外壳样式 */
+@media (min-width: 600px) {
+  .shell {
+    height: min(calc(100dvh - 60px), calc((100vw - 60px) * 19.5 / 9));
+    aspect-ratio: 9 / 19.5;
+    max-height: 860px;
+    max-width: 397px;
+    border-radius: 44px;
+    box-shadow:
+      0 0 0 8px #0d0d0d,                  /* 手机黑色边框 */
+      0 0 0 10px #2a2a2a,                 /* 银色光圈 */
+      0 36px 90px rgba(0, 0, 0, 0.55),    /* 远阴影 */
+      0 10px 30px rgba(0, 0, 0, 0.35);    /* 近阴影 */
+  }
+
+  /* 顶部 Dynamic Island */
+  .shell:not(.bare)::after {
+    content: '';
+    position: absolute;
+    top: 11px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 110px;
+    height: 30px;
+    background: #000;
+    border-radius: 16px;
+    z-index: 200;
+    pointer-events: none;
+  }
+
+  /* bare 模式：保留尺寸，去掉手机外壳装饰（圆角/黑边/Dynamic Island/阴影）*/
+  .shell.bare {
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  :global(body) {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+  }
 }
 
 .feed {

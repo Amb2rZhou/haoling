@@ -5,64 +5,48 @@ import RightRail from './RightRail';
 import BottomMeta from './BottomMeta';
 import BottomNav from './BottomNav';
 import MockVideo from './MockVideo';
+import IframeCard from './IframeCard';
 import Qiuqian from '../cards/Qiuqian/Qiuqian';
 import Zodiac from '../cards/Zodiac/Zodiac';
 import styles from './DouyinShell.module.css';
 
-const SLIDES = [
+const DEFAULT_SLIDES = [
   {
-    id: 'video-top',
+    id: 'video-raison',
     type: 'mock',
     variant: 'top',
-    src: '/video/chenxi.mp4',
-    author: '晨曦的旅途',
-    avatar: '🌅',
-    caption: '春节假期已结束 明天大家都要返回工作岗位，北京我们回来啦 #321极限返工',
-    location: '郑州市',
-    publishedAt: '2026-02-16',
+    src: '/video/raison.mp4',
+    letterbox: true, // 横向视频，上下黑边
+    author: 'Raison',
+    avatar: '🎬',
+    caption: '不必太苛求自己的完美，你已经很棒了 #拍出电影感 #氛围感',
+    location: '',
+    publishedAt: '',
+  },
+  {
+    id: 'video-xiaoying',
+    type: 'mock',
+    variant: 'mid',
+    src: '/video/xiaoying.mp4',
+    author: '小莹会赢',
+    avatar: '💼',
+    caption: '5招职场小技巧，让人一眼就觉得你工作能力很强！ #职场',
+    location: '',
+    publishedAt: '',
   },
   {
     id: 'qiuqian',
     type: 'qiuqian',
   },
-  {
-    id: 'video-mid-1',
-    type: 'mock',
-    variant: 'mid',
-    src: '/video/other.mp4',
-    author: '深圳卫健委',
-    avatar: '🏥',
-    caption: '那些年，我们离过的flag #新年快乐 #新年flag',
-    location: '',
-    publishedAt: '2026-02-16',
-  },
-  {
-    id: 'video-mid-2',
-    type: 'mock',
-    variant: 'mid',
-    author: '',
-    avatar: '👤',
-    caption: '',
-  },
-  {
-    id: 'zodiac',
-    type: 'zodiac',
-  },
-  {
-    id: 'video-bottom',
-    type: 'mock',
-    variant: 'bottom',
-    author: '',
-    avatar: '👤',
-    caption: '',
-  },
 ];
 
-export default function DouyinShell({ personaId, initialCard }) {
+export default function DouyinShell({ personaId, initialCard, slides, bare }) {
+  const SLIDES = slides || DEFAULT_SLIDES;
   const feedRef = useRef(null);
   const initialIndex = (() => {
+    if (!initialCard) return 0; // 没指定 → 第一张
     const idx = SLIDES.findIndex((s) => s.type === initialCard);
-    return idx >= 0 ? idx : 1;
+    return idx >= 0 ? idx : 0;
   })();
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const [soundEnabled, setSoundEnabled] = useState(false);
@@ -70,7 +54,17 @@ export default function DouyinShell({ personaId, initialCard }) {
   // 首次用户交互后解除视频静音（浏览器自动播放策略限制）
   useEffect(() => {
     if (soundEnabled) return;
-    const enable = () => setSoundEnabled(true);
+    const enable = () => {
+      setSoundEnabled(true);
+      // 只对当前 active 视频（正在播放的）同步 unmute + 重新 play
+      // 非 active 视频保持 paused，等用户滑过去时 MockVideo 自己处理
+      document.querySelectorAll('video').forEach((v) => {
+        if (!v.paused) {
+          v.muted = false;
+          v.play().catch(() => {});
+        }
+      });
+    };
     document.addEventListener('click', enable, { once: true });
     document.addEventListener('touchstart', enable, { once: true });
     return () => {
@@ -105,10 +99,10 @@ export default function DouyinShell({ personaId, initialCard }) {
   }, []);
 
   const currentSlide = SLIDES[activeIndex];
-  const isCard = currentSlide.type === 'qiuqian' || currentSlide.type === 'zodiac';
+  const isCard = currentSlide.type === 'qiuqian' || currentSlide.type === 'zodiac' || currentSlide.type === 'iframe-card';
 
   return (
-    <div className={styles.shell}>
+    <div className={`${styles.shell} ${bare ? styles.bare : ''}`}>
       <div className={styles.feed} ref={feedRef}>
         {SLIDES.map((slide, idx) => (
           <div key={slide.id} className={styles.slide}>
@@ -118,6 +112,7 @@ export default function DouyinShell({ personaId, initialCard }) {
                 src={slide.src}
                 active={activeIndex === idx}
                 soundEnabled={soundEnabled}
+                letterbox={slide.letterbox}
               />
             )}
             {slide.type === 'qiuqian' && (
@@ -125,6 +120,9 @@ export default function DouyinShell({ personaId, initialCard }) {
             )}
             {slide.type === 'zodiac' && (
               <Zodiac personaId={personaId} active={activeIndex === idx} />
+            )}
+            {slide.type === 'iframe-card' && (
+              <IframeCard src={slide.src} active={activeIndex === idx} />
             )}
           </div>
         ))}

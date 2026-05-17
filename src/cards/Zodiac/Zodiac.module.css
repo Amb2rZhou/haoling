@@ -20,7 +20,7 @@
 .ctaBtn {
   position: absolute;
   left: 50px;
-  bottom: 28%;
+  bottom: 20%;
   width: 42px;
   height: 42px;
   padding: 0;
@@ -55,15 +55,15 @@
   display: block;
 }
 
-/* 详情页：年度关键词全屏背景 */
+/* 详情页：年度关键词全屏背景，contain 完整显示，上下用 .bg 米白填补 */
 .keywordsPoster {
   position: absolute;
   inset: 0;
   background-image: url('/img/zodiac-keywords.png');
-  background-size: cover;
+  background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
-  overflow-y: auto;
+  background-color: #F2EFE9;
 }
 
 /* "蜕"字左下"好灵"印章 */

@@ -1,0 +1,2415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>今日运势 · 抖音信息流卡片</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after {
+  margin: 0; padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+  --bone:     #F7F5F2;
+  --card:     #FAFAF9;
+  --white:    #FFFFFF;
+  --ink:      #1A1A1A;
+  --ink-2:    #3A3A3A;
+  --muted:    #8C8C8C;
+  --border:   rgba(0,0,0,0.07);
+  --serif:    'Noto Serif SC', 'Songti SC', 'STSong', serif;
+  --sans:     -apple-system, 'PingFang SC', 'Helvetica Neue', sans-serif;
+  --mono:     'SF Mono', 'Menlo', monospace;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: #F2F2F2;
+  font-family: var(--sans);
+  overflow: hidden;
+}
+
+/* ── PHONE SHELL ── */
+.shell {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: #F2F2F2;
+}
+
+.frame {
+  position: relative;
+  width: min(393px, 100vw);
+  height: min(852px, 100vh);
+  overflow: hidden;
+  border-radius: min(48px, 5vw);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,.08),
+    0 20px 60px rgba(0,0,0,.15);
+  background: #FFFFFF;
+}
+
+/* ── TIKTOK BACKGROUND VIDEO STUB ── */
+.video-bg {
+  position: absolute; inset: 0;
+  background: #FFFFFF;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+
+.video-bg::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 30% 40%, rgba(180,165,140,.05) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 70% 60%, rgba(140,120,100,.04) 0%, transparent 70%);
+}
+
+/* ── SEASONAL FLOWER BACKGROUND ── */
+/* Covers top ~55% of screen, fades out downward, sits below card (z-index < 40) */
+.video-bg::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 62%;          /* upper half only */
+  z-index: 5;           /* above ::before gradient, below card z-40 */
+  background-image: var(--seasonal-flower-svg);
+  background-size: 130% auto;
+  background-position: 60% 10%;
+  background-repeat: no-repeat;
+  opacity: .72;
+  /* fade: visible at top → fully transparent at bottom */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgba(0,0,0,1)  0%,
+    rgba(0,0,0,.9) 30%,
+    rgba(0,0,0,.6) 55%,
+    rgba(0,0,0,.2) 78%,
+    rgba(0,0,0,0)  100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0,0,0,1)  0%,
+    rgba(0,0,0,.9) 30%,
+    rgba(0,0,0,.6) 55%,
+    rgba(0,0,0,.2) 78%,
+    rgba(0,0,0,0)  100%
+  );
+  pointer-events: none;
+}
+
+.video-stub-text {
+  font-family: var(--sans);
+  font-size: 13px;
+  color: rgba(0,0,0,.15);
+  letter-spacing: .08em;
+}
+
+/* ── STATUS BAR ── */
+.statusbar {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 90;
+  height: 48px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 24px 0;
+}
+.statusbar .time {
+  font-size: 15px; font-weight: 600;
+  color: rgba(0,0,0,.85);
+  font-family: var(--sans);
+}
+.statusbar .icons {
+  display: flex; gap: 5px; align-items: center;
+}
+.statusbar .icons span {
+  font-size: 12px; color: rgba(0,0,0,.6);
+}
+
+/* ── TIKTOK UI CHROME ── */
+.tiktok-chrome {
+  position: absolute; inset: 0; z-index: 30;
+  pointer-events: none;
+}
+
+/* Right side action buttons */
+.right-actions {
+  position: absolute; right: 12px; bottom: 160px;
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
+  pointer-events: all;
+}
+
+.action-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+
+.action-circle {
+  width: 44px; height: 44px;
+  background: rgba(0,0,0,.06);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(0,0,0,.06);
+}
+
+.action-circle svg {
+  width: 22px; height: 22px;
+  fill: none; stroke: rgba(0,0,0,.7); stroke-width: 1.5;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+
+.action-num {
+  font-size: 11px; color: rgba(0,0,0,.45);
+  font-family: var(--sans);
+}
+
+/* bottom-info removed */
+
+/* AI reason pill */
+.ai-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(0,0,0,.05);
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 4px;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+  backdrop-filter: blur(8px);
+}
+
+.ai-pill-dot {
+  width: 5px; height: 5px;
+  background: #C8956A;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ai-pill-text {
+  font-size: 11px;
+  color: rgba(0,0,0,.5);
+  font-family: var(--sans);
+  letter-spacing: .02em;
+}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: absolute; bottom: 0; left: 0; right: 0; z-index: 50;
+  height: 72px;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(0,0,0,.07);
+  display: flex; align-items: center; justify-content: space-around;
+  padding: 0 4px 10px;
+}
+
+.nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  flex: 1; padding: 8px 4px 0; cursor: pointer;
+}
+
+.nav-icon {
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.nav-icon svg {
+  width: 24px; height: 24px;
+  fill: none; stroke: rgba(0,0,0,.35); stroke-width: 1.5;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+
+.nav-item.active .nav-icon svg { stroke: rgba(0,0,0,.85); }
+.nav-label { font-size: 10px; color: rgba(0,0,0,.35); font-family: var(--sans); }
+.nav-item.active .nav-label { color: rgba(0,0,0,.85); }
+
+.nav-plus-wrap {
+  width: 48px; height: 30px;
+  background: white; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; position: relative;
+}
+
+.nav-plus-wrap::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0; width: 50%;
+  background: #69C9D0;
+}
+.nav-plus-wrap::after {
+  content: '';
+  position: absolute; right: 0; top: 0; bottom: 0; width: 50%;
+  background: #EE1D52;
+}
+
+.nav-plus-icon {
+  position: relative; z-index: 1;
+  width: 22px; height: 22px;
+  background: white; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 300; color: #111;
+  line-height: 1;
+}
+
+/* ═══════════════════════════════════════
+   GREETING BAR (outside card)
+═══════════════════════════════════════ */
+.greeting-bar {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  padding: 0 6px 12px;
+}
+.greeting-bar-text {
+  font-family: var(--serif);
+  font-weight: 400;
+  color: var(--ink);
+  letter-spacing: .01em;
+  line-height: 1.25;
+}
+.greeting-bar-line1 {
+  display: block;
+  font-size: 14px;
+  color: var(--muted);
+  letter-spacing: .04em;
+  margin-bottom: 2px;
+}
+.greeting-bar-line2 {
+  display: block;
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: -.01em;
+}
+.greeting-bar-icon {
+  font-size: 22px;
+  line-height: 1;
+  padding-bottom: 3px;
+}
+
+/* ═══════════════════════════════════════
+   THE CARD — 2-page swipeable embed unit
+═══════════════════════════════════════ */
+.card-container {
+  position: absolute;
+  top: 100px;
+  left: 14px; right: 14px;
+  z-index: 40;
+}
+
+.fortune-card {
+  background: var(--card);
+  border-radius: 20px;
+  border: 1px solid rgba(0,0,0,.06);
+  overflow: hidden;
+}
+
+/* ── SWIPE ──
+   card-swipe-wrap clips horizontally.
+   card-pages is a flex row — height driven by P1 only.
+   P2 scrolls internally so it never stretches the card taller than P1.
+*/
+.card-swipe-wrap {
+  overflow: hidden;
+  position: relative;
+}
+
+.card-pages {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;   /* each page keeps its own height */
+  width: 200%;               /* total = 2 pages side by side */
+  transition: transform .38s cubic-bezier(.4,0,.2,1);
+  will-change: transform;
+}
+
+.card-page {
+  width: 50%;                /* each page = 50% of 200% = 100% of wrap */
+  flex: 0 0 50%;
+  box-sizing: border-box;
+}
+
+/* P1 — almanacPage absolute 定位参考容器 */
+#cardPage0 {
+  position: relative;
+  overflow: hidden; /* 撕页落下时不溢出卡片 */
+}
+
+/* P2 scrolls internally — max-height set dynamically by JS to match P1 */
+#cardPage1 {
+position: relative;
+overflow-y: auto;
+overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+#cardPage1::-webkit-scrollbar { display: none; }
+
+/* ── PAGE DOTS (inside card, at the bottom) ── */
+.card-page-dots {
+  display: flex; justify-content: center; align-items: center; gap: 5px;
+  padding: 8px 0 4px;
+  background: var(--card);
+}
+
+.card-dot {
+  height: 2.5px;
+  border-radius: 2px;
+  background: rgba(0,0,0,.12);
+  transition: all .3s cubic-bezier(.4,0,.2,1);
+  width: 14px;
+}
+
+.card-dot.active {
+  background: rgba(0,0,0,.5);
+  width: 24px;
+}
+
+/* ── DISCLAIMER (inside card, at the bottom) ── */
+.card-disclaimer {
+  padding: 2px 20px 10px;
+  font-size: 10px;
+  font-family: var(--sans);
+  color: rgba(0,0,0,.25);
+  letter-spacing: .01em;
+  line-height: 1.55;
+  text-align: center;
+  background: var(--card);
+}
+
+/* old .card-greeting removed — greeting is now outside card */
+
+/* ══════════════════════════════════════
+   撕黄历 · 5月15日覆盖层
+══════════════════════════════════════ */
+
+/* 覆盖在 P2 之上的「昨日」纸张，与 P2 完全同款白卡风格 */
+#almanacPage {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background: var(--card);
+  border-radius: inherit;
+  overflow: visible; /* 卷角 drop-shadow 不被截断 */
+  /* 让 clip-path 动画看起来纸张从左往右被撕开 */
+  will-change: clip-path, transform, opacity;
+  /* 默认状态：完全可见，clip-path 带圆角（与卡片 border-radius: 20px 一致，~6.25%） */
+  clip-path: polygon(
+    6.25% 0%, 93.75% 0%,
+    100% 0%, 100% 6.25%,
+    100% 93.75%, 100% 100%,
+    93.75% 100%, 6.25% 100%,
+    0% 100%, 0% 93.75%,
+    0% 6.25%, 0% 0%
+  );
+  transition: none; /* 动画全由 JS 控制 */
+  cursor: grab;     /* 提示可拖拽 */
+}
+#almanacPage:active {
+  cursor: grabbing;
+}
+
+/* 昨日纸张内所有文字统一变浅，模拟被压在蒙版下 */
+#almanacPage .card-header,
+#almanacPage .card-body-score,
+#almanacPage .card-quote,
+#almanacPage .card-yiji {
+  opacity: 0.38;
+}
+
+/* 顶部蒙版：覆盖顶部42%，强化"向下拖"的视觉引导 */
+#almanacPage::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 42%;
+  background: linear-gradient(
+    to bottom,
+    rgba(205,203,200,0.92) 0%,
+    rgba(210,208,205,0.80) 28%,
+    rgba(215,212,208,0.50) 58%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 22;  /* 覆盖所有昨日内容，低于卷角(25)和引导语(26) */
+  border-radius: inherit;
+}
+
+/* 昨日纸张内部滚动区（与 P2 完全相同布局） */
+#almanacPage .alm-inner {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+#almanacPage .alm-inner::-webkit-scrollbar { display: none; }
+
+/* ── 左上角卷角 + 引导语 ─────────────────── */
+
+/* 卷角本体：纯 CSS 三角形叠层模拟翻起效果 */
+.alm-corner-curl {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 54px;
+  height: 54px;
+  z-index: 25;
+  pointer-events: none;
+}
+
+/* 翻起的纸面（米白色三角） */
+.alm-corner-curl::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 0; height: 0;
+  border-style: solid;
+  /* 形成左上角三角形：宽54px高54px的直角三角 */
+  border-width: 54px 54px 0 0;
+  border-color: #f0ece4 transparent transparent transparent;
+  filter: drop-shadow(2px 3px 4px rgba(0,0,0,0.18));
+}
+
+/* 卷角背面（稍深的投影色，给翻页厚度感） */
+.alm-corner-curl::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 0; height: 0;
+  border-style: solid;
+  border-width: 44px 44px 0 0;
+  border-color: #ddd8ce transparent transparent transparent;
+  opacity: 0.5;
+}
+
+/* 卷角抖动动画（吸引注意） */
+@keyframes curlWiggle {
+  0%,100% { transform: scale(1);   filter: drop-shadow(2px 3px 4px rgba(0,0,0,.18)); }
+  40%      { transform: scale(1.12); filter: drop-shadow(3px 5px 7px rgba(0,0,0,.26)); }
+  70%      { transform: scale(1.06); filter: drop-shadow(2px 4px 5px rgba(0,0,0,.22)); }
+}
+.alm-corner-curl {
+  animation: curlWiggle 2.4s ease-in-out infinite;
+  transform-origin: top left;
+}
+
+/* 引导语浮在卷角右侧 */
+.alm-curl-hint {
+  position: absolute;
+  top: 14px;
+  left: 62px;        /* 卷角宽度 + 8px gap */
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 26;       /* 高于蒙版(z=1)和卷角(z=25) */
+  animation: hintFadeIn 0.8s ease-out 0.4s both, hintPulse 3s ease-in-out 1.2s infinite;
+}
+@keyframes hintFadeIn {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes hintPulse {
+  0%,100% { opacity: 0.7; }
+  50%     { opacity: 1;   }
+}
+.alm-curl-hint-arrow {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1;
+  text-shadow: 0 1px 3px rgba(255,255,255,0.6);
+}
+.alm-curl-hint-text {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: .06em;
+  line-height: 1;
+  text-shadow: 0 1px 4px rgba(255,255,255,0.7);
+}
+
+/* ══════════════════════════════════════
+   PAGE 2 — 详情报告
+══════════════════════════════════════ */
+
+
+/* P2 通用 section 间距 */
+.p2-block {
+padding: 14px 20px 0;
+}
+.p2-block:last-of-type {
+  padding-bottom: 0;
+}
+
+/* ── P2 分数 banner ── */
+.p2-score-banner {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  padding: 14px 20px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.p2-score-left {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.p2-score-label {
+  font-size: 10px;
+  font-family: var(--sans);
+  color: var(--muted);
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+.p2-score-num {
+  font-size: 52px;
+  font-family: var(--serif);
+  font-weight: 300;
+  color: var(--ink);
+  line-height: 1;
+  letter-spacing: -.04em;
+}
+.p2-score-unit {
+  font-size: 14px;
+  font-family: var(--serif);
+  color: var(--muted);
+  margin-left: 2px;
+}
+.p2-score-right {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+}
+.p2-zodiac-tag {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--muted);
+  letter-spacing: .04em;
+}
+.p2-energy-badge {
+  font-size: 12px;
+  font-family: var(--serif);
+  font-weight: 400;
+  color: var(--ink);
+  background: rgba(0,0,0,.05);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px 8px;
+  letter-spacing: .02em;
+}
+
+/* ── P2 section 小标题 ── */
+.p2-section-title {
+  font-size: 10px;
+  font-family: var(--sans);
+  color: var(--muted);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+/* ── 维度进度条 ── */
+.p2-dim-list {
+  display: flex; flex-direction: column; gap: 9px;
+  margin-bottom: 4px;
+}
+.p2-dim-row {
+  display: flex; align-items: center; gap: 10px;
+}
+.p2-dim-name {
+  font-size: 12px;
+  font-family: var(--sans);
+  color: var(--muted);
+  width: 28px;
+  flex-shrink: 0;
+  letter-spacing: .01em;
+}
+.p2-dim-track {
+  flex: 1;
+  height: 3px;
+  background: rgba(0,0,0,.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.p2-dim-fill {
+  height: 100%;
+  background: var(--ink);
+  border-radius: 2px;
+  width: 0;
+  transition: width .85s cubic-bezier(.16,1,.3,1);
+}
+.p2-dim-val {
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--muted);
+  width: 22px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── AI 洞察文案 ── */
+.p2-insight {
+  font-size: 13px;
+  font-family: var(--serif);
+  font-weight: 300;
+  color: var(--ink-2);
+  line-height: 1.85;
+  letter-spacing: .01em;
+}
+.p2-insight-quote {
+  display: block;
+  font-size: 12px;
+  font-family: var(--serif);
+  font-weight: 400;
+  color: var(--muted);
+  border-left: 2px solid rgba(0,0,0,.12);
+  padding-left: 10px;
+  margin-top: 12px;
+  line-height: 1.7;
+  letter-spacing: .01em;
+}
+
+/* ── 幸运元素 2×2 网格 ── */
+.p2-lucky-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.p2-lucky-tile {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 6px 9px;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+}
+.p2-lucky-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+.p2-lucky-val {
+  font-size: 12px;
+  font-family: var(--serif);
+  font-weight: 400;
+  color: var(--ink);
+  letter-spacing: .01em;
+  text-align: center;
+  line-height: 1.3;
+}
+.p2-lucky-label {
+  font-size: 9.5px;
+  font-family: var(--sans);
+  color: var(--muted);
+  letter-spacing: .02em;
+  text-align: center;
+}
+
+/* ── 能量任务 ── */
+.p2-task-list {
+display: flex; flex-direction: column; gap: 0;
+}
+.p2-task-row {
+display: flex; align-items: center; gap: 10px;
+padding: 10px 0;
+border-bottom: 1px solid rgba(0,0,0,.05);
+}
+.p2-task-row:last-child { border-bottom: none; }
+.p2-task-dot {
+width: 6px; height: 6px;
+border-radius: 50%;
+background: var(--ink-2);
+flex-shrink: 0;
+opacity: .45;
+}
+.p2-task-text {
+font-size: 13px;
+font-family: var(--sans);
+color: var(--ink-2);
+line-height: 1.5;
+}
+
+/* ── P2 返回提示 ── */
+.p2-back-hint {
+  display: flex; align-items: center; gap: 6px;
+  padding-top: 2px;
+}
+.p2-back-hint span {
+  font-size: 12px;
+  font-family: var(--sans);
+  color: var(--muted);
+  letter-spacing: .02em;
+}
+
+/* ── CARD HEADER ── */
+.card-header {
+  padding: 14px 20px 0;
+  display: flex; align-items: flex-start; justify-content: space-between;
+}
+
+.card-header-left {
+  display: flex; flex-direction: column; gap: 2px;
+}
+
+.card-label {
+  font-size: 11px;
+  font-family: var(--sans);
+  color: var(--muted);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.card-title {
+  font-size: 17px;
+  font-family: var(--serif);
+  font-weight: 400;
+  color: var(--ink);
+  letter-spacing: -.01em;
+}
+
+.card-date {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--muted);
+  letter-spacing: .03em;
+}
+
+.card-header-right {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+}
+
+.energy-label {
+  font-size: 10px;
+  color: var(--muted);
+  font-family: var(--sans);
+  letter-spacing: .04em;
+}
+
+.energy-val {
+  font-size: 14px;
+  font-family: var(--serif);
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* ── CARD BODY — PHASE A (mood select / zodiac score) ── */
+.card-body-score {
+  padding: 10px 20px 0;
+  display: flex; align-items: flex-end; gap: 16px;
+}
+
+.score-big {
+  display: flex; flex-direction: column; gap: 0;
+}
+
+.score-date-num {
+  font-size: 72px;
+  font-family: var(--serif);
+  font-weight: 300;
+  color: rgba(0,0,0,.08);
+  line-height: 1;
+  letter-spacing: -.04em;
+  user-select: none;
+}
+
+.score-actual {
+  margin-top: -20px;
+  font-size: 15px;
+  font-family: var(--serif);
+  color: var(--ink-2);
+  letter-spacing: .02em;
+}
+
+/* ── CARD BODY — QUOTE ── */
+.card-quote {
+  padding: 8px 20px 0;
+}
+
+.quote-main {
+  font-size: 22px;
+  font-family: var(--serif);
+  font-weight: 400;
+  color: var(--ink);
+  line-height: 1.45;
+  letter-spacing: -.01em;
+}
+
+/* ── AMBIENT BLOB ── */
+.blob-wrap {
+  position: absolute;
+  top: 20px; right: 20px;
+  width: 80px; height: 80px;
+  pointer-events: none;
+}
+
+.blob {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  filter: blur(18px);
+  opacity: 0.55;
+  animation: blobDrift 8s ease-in-out infinite alternate;
+}
+
+@keyframes blobDrift {
+  0%   { transform: scale(1) translate(0,0); }
+  100% { transform: scale(1.1) translate(4px, 6px); }
+}
+
+/* ── CARD YI/JI SECTION ── */
+.card-yiji {
+  padding: 14px 20px 0;
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  gap: 0;
+}
+
+.yiji-divider {
+  background: var(--border);
+  align-self: stretch;
+}
+
+.yiji-col {
+  padding: 0 16px;
+}
+
+.yiji-col:first-child { padding-left: 0; }
+.yiji-col:last-child  { padding-right: 0; }
+
+.yiji-pinyin {
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--muted);
+  letter-spacing: .1em;
+  margin-bottom: 2px;
+}
+
+.yiji-char {
+  font-size: 28px;
+  font-family: var(--serif);
+  font-weight: 400;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.yiji-items {
+  display: flex; flex-direction: column; gap: 3px;
+}
+
+.yiji-item {
+  font-size: 12px;
+  font-family: var(--sans);
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ── CARD FOOTER ── */
+.card-footer {
+  padding: 12px 20px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.footer-action {
+  font-size: 12px;
+  color: var(--muted);
+  font-family: var(--sans);
+  letter-spacing: .02em;
+  cursor: pointer;
+}
+
+.footer-btn {
+  width: 40px; height: 40px;
+  background: var(--ink);
+  border-radius: 50%;
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .15s;
+  flex-shrink: 0;
+}
+
+.footer-btn:active { transform: scale(.93); }
+.footer-btn.share-btn svg { stroke: rgba(0,0,0,.85) !important; }
+
+.footer-btn svg {
+  width: 18px; height: 18px;
+  stroke: white; fill: none;
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+
+/* ── PHASE B: MOOD SELECT ── */
+.mood-select-phase {
+  padding: 0 20px 0;
+  display: none;
+}
+
+.mood-prompt {
+  font-size: 13px;
+  font-family: var(--sans);
+  color: var(--muted);
+  letter-spacing: .02em;
+  margin-bottom: 14px;
+}
+
+.mood-chips {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+
+.mood-chip {
+  padding: 6px 14px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: var(--sans);
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: all .18s;
+  letter-spacing: .01em;
+}
+
+.mood-chip:hover,
+.mood-chip.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: white;
+}
+
+/* (detail-overlay / score-bars / lucky / tasks / share-btn removed — all unused) */
+
+/* ── MOOD MODE card variant ── */
+.mood-result-section {
+  padding: 12px 20px 0;
+  display: none;
+}
+
+.mood-score-display {
+  display: flex; align-items: baseline; gap: 6px;
+  margin-bottom: 10px;
+}
+
+.mood-score-num {
+  font-size: 48px;
+  font-family: var(--serif);
+  font-weight: 300;
+  color: var(--ink);
+  letter-spacing: -.03em;
+  line-height: 1;
+}
+
+.mood-score-unit {
+  font-size: 14px;
+  font-family: var(--serif);
+  color: var(--muted);
+}
+
+.mood-bar-track {
+  width: 100%;
+  height: 3px;
+  background: rgba(0,0,0,.06);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.mood-bar-fill {
+  height: 100%;
+  background: var(--ink);
+  border-radius: 2px;
+  width: 0%;
+  transition: width .9s cubic-bezier(.16,1,.3,1);
+}
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 100px; left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20,20,20,.88);
+  color: white;
+  font-size: 12.5px;
+  font-family: var(--sans);
+  padding: 9px 18px;
+  border-radius: 6px;
+  z-index: 9999;
+  pointer-events: none;
+  white-space: nowrap;
+  letter-spacing: .02em;
+  opacity: 1;
+  transition: opacity .3s;
+}
+
+/* ── 分享弹框 ── */
+.share-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0,0,0,0);
+  transition: background .28s ease;
+  pointer-events: none;
+}
+.share-mask.open {
+  background: rgba(0,0,0,.38);
+  pointer-events: all;
+}
+
+.share-sheet {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  padding: 0 0 20px;
+  transform: translateY(100%);
+  transition: transform .32s cubic-bezier(.32,1,.5,1);
+  z-index: 201;
+}
+.share-mask.open .share-sheet {
+  transform: translateY(0);
+}
+
+.share-handle {
+  width: 36px; height: 4px;
+  background: rgba(0,0,0,.12);
+  border-radius: 2px;
+  margin: 10px auto 14px;
+}
+
+.share-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px 12px;
+  border-bottom: 1px solid rgba(0,0,0,.06);
+}
+.share-title {
+  font-size: 16px;
+  font-family: var(--sans);
+  font-weight: 600;
+  color: var(--ink);
+}
+.share-close {
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: rgba(0,0,0,.06);
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--muted);
+  border: none;
+}
+.share-close:active { background: rgba(0,0,0,.12); }
+
+.share-contacts {
+  display: flex;
+  overflow-x: auto;
+  padding: 14px 12px 10px;
+  scrollbar-width: none;
+}
+.share-contacts::-webkit-scrollbar { display: none; }
+
+.share-contact {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  flex: 0 0 64px;
+  cursor: pointer;
+}
+.share-contact:active .share-avatar { transform: scale(.92); }
+
+.share-avatar {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  transition: transform .15s;
+  position: relative;
+  flex-shrink: 0;
+}
+.share-avatar-img {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  line-height: 1;
+}
+.share-avatar-dot {
+  position: absolute;
+  bottom: 1px; right: 1px;
+  width: 11px; height: 11px;
+  background: #4CD964;
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
+
+.share-contact-name {
+  font-size: 11px;
+  font-family: var(--sans);
+  color: var(--ink);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 58px;
+}
+.share-contact-sub {
+  font-size: 10px;
+  font-family: var(--sans);
+  color: var(--muted);
+  text-align: center;
+  margin-top: -3px;
+}
+
+.share-divider {
+  height: 1px;
+  background: rgba(0,0,0,.06);
+  margin: 2px 0 12px;
+}
+
+.share-actions {
+  display: flex;
+  overflow-x: auto;
+  padding: 4px 12px 4px;
+  scrollbar-width: none;
+}
+.share-actions::-webkit-scrollbar { display: none; }
+
+.share-action {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  flex: 0 0 64px;
+  cursor: pointer;
+}
+.share-action:active .share-action-icon { transform: scale(.90); }
+
+.share-action-icon {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: #f4f4f4;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .15s;
+}
+.share-action-icon svg {
+  width: 22px; height: 22px;
+}
+.share-action-label {
+  font-size: 11px;
+  font-family: var(--sans);
+  color: var(--ink);
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="shell">
+<div class="frame" id="frame">
+
+  <!-- VIDEO BG -->
+  <div class="video-bg">
+    <span class="video-stub-text">抖音信息流</span>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="statusbar">
+    <span class="time">9:30</span>
+    <div class="icons">
+      <span>▪▪▪</span>
+      <span>WiFi</span>
+      <span>75%</span>
+    </div>
+  </div>
+
+  <!-- ═══ THE FORTUNE CARD (2-page swipeable) ═══ -->
+  <div class="card-container">
+
+    <!-- GREETING BAR (outside card) -->
+    <div class="greeting-bar">
+      <span class="greeting-bar-text">
+        <span class="greeting-bar-line1" id="greetingText">早上好，</span>
+        <span class="greeting-bar-line2">小月</span>
+      </span>
+      <span class="greeting-bar-icon" id="greetingIcon">☀️</span>
+    </div>
+
+    <div class="fortune-card" id="fortuneCard">
+      <!-- 光晕追踪层 -->
+      <div class="card-glow-overlay" id="cardGlowOverlay"></div>
+
+      <!-- SWIPE VIEWPORT -->
+      <div class="card-swipe-wrap" id="cardSwipeWrap">
+        <div class="card-pages" id="cardPages">
+
+          <!-- ─── PAGE 1: 主内容 ─── -->
+          <div class="card-page" id="cardPage0">
+
+            <!-- ══════════════════════════════
+                 昨日黄历纸 (5月15日) — 覆盖 P1
+                 点击即撕开，露出今日 P1
+            ═══════════════════════════════ -->
+            <div id="almanacPage">
+
+              <!-- 左上角卷角 + 引导语 -->
+              <div class="alm-corner-curl"></div>
+              <div class="alm-curl-hint">
+                <span class="alm-curl-hint-arrow">↓</span>
+                <span class="alm-curl-hint-text">向下拖动撕去昨日</span>
+              </div>
+
+              <!-- AMBIENT BLOB (昨日色调 - 偏冷) -->
+              <div style="position:relative;height:0;overflow:visible">
+                <div style="position:absolute;top:18px;right:20px;width:80px;height:80px;pointer-events:none">
+                  <div class="blob" style="background:radial-gradient(circle,#8BA8C4,#6A8CA8,#4A6E8C)"></div>
+                </div>
+              </div>
+
+              <!-- CARD HEADER — 昨日 -->
+              <div class="card-header">
+                <div class="card-header-left">
+                  <span class="card-label">昨日运势</span>
+                  <span class="card-title">双子座</span>
+                  <span class="card-date">2026 / 05 / 15 周五</span>
+                </div>
+                <div class="card-header-right">
+                  <span class="energy-label">昨日能量</span>
+                  <span class="energy-val">中</span>
+                </div>
+              </div>
+
+              <!-- SCORE + DATE NUM — 昨日 -->
+              <div class="card-body-score">
+                <div class="score-big">
+                  <span class="score-date-num">15</span>
+                  <span class="score-actual">综合指数 62 分</span>
+                </div>
+              </div>
+
+              <!-- QUOTE — 昨日 -->
+              <div class="card-quote">
+                <p class="quote-main">千里之行<br>始于足下</p>
+              </div>
+
+              <!-- YI / JI — 昨日 -->
+              <div class="card-yiji">
+                <div class="yiji-col">
+                  <div class="yiji-pinyin">yí</div>
+                  <div class="yiji-char">宜</div>
+                  <div class="yiji-items">
+                    <span class="yiji-item">表达真实想法</span>
+                    <span class="yiji-item">尝试新事物</span>
+                    <span class="yiji-item">相信直觉</span>
+                  </div>
+                </div>
+                <div class="yiji-divider"></div>
+                <div class="yiji-col">
+                  <div class="yiji-pinyin">jì</div>
+                  <div class="yiji-char">忌</div>
+                  <div class="yiji-items">
+                    <span class="yiji-item">逃避沟通</span>
+                    <span class="yiji-item">固步自封</span>
+                    <span class="yiji-item">过度思虑</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            <!-- ════════════════════════════ -->
+
+            <!-- AMBIENT BLOB -->
+            <div style="position:relative;height:0;overflow:visible">
+              <div style="position:absolute;top:18px;right:20px;width:80px;height:80px;pointer-events:none">
+                <div class="blob" id="blob" style="background:radial-gradient(circle,#D4A76A,#B8906B,#8C6B4A)"></div>
+              </div>
+            </div>
+
+            <!-- CARD HEADER -->
+            <div class="card-header">
+              <div class="card-header-left">
+                <span class="card-label" id="cardLabel">今日运势</span>
+                <span class="card-title" id="cardTitle">双子座</span>
+                <span class="card-date" id="cardDate">2026 / 05 / 16 周六</span>
+              </div>
+              <div class="card-header-right">
+                <span class="energy-label">今日能量</span>
+                <span class="energy-val" id="energyVal">高</span>
+              </div>
+            </div>
+
+            <!-- SCORE + DATE NUM -->
+            <div class="card-body-score" id="scoreSection">
+              <div class="score-big">
+                <span class="score-date-num" id="scoreDateNum">16</span>
+                <span class="score-actual" id="scoreActual">综合指数 74 分</span>
+              </div>
+            </div>
+
+            <!-- MOOD RESULT (hidden initially) -->
+            <div class="mood-result-section" id="moodResultSection">
+              <div class="mood-score-display">
+                <span class="mood-score-num" id="moodScoreNum">48</span>
+                <span class="mood-score-unit">分</span>
+              </div>
+              <div class="mood-bar-track">
+                <div class="mood-bar-fill" id="moodBarFill"></div>
+              </div>
+            </div>
+
+            <!-- QUOTE -->
+            <div class="card-quote">
+              <p class="quote-main" id="cardQuote">花开堪折<br>直须折</p>
+            </div>
+
+            <!-- MOOD SELECT -->
+            <div class="mood-select-phase" id="moodSelectPhase">
+              <p class="mood-prompt">今天感觉怎么样？</p>
+              <div class="mood-chips">
+                <button class="mood-chip" onclick="selectMood(this,'愉快',85)">愉快</button>
+                <button class="mood-chip" onclick="selectMood(this,'平静',72)">平静</button>
+                <button class="mood-chip" onclick="selectMood(this,'疲惫',55)">疲惫</button>
+                <button class="mood-chip" onclick="selectMood(this,'焦虑',48)">焦虑</button>
+                <button class="mood-chip" onclick="selectMood(this,'低落',40)">低落</button>
+                <button class="mood-chip" onclick="selectMood(this,'亢奋',90)">亢奋</button>
+              </div>
+            </div>
+
+            <!-- YI / JI -->
+            <div class="card-yiji" id="yijiSection">
+              <div class="yiji-col">
+                <div class="yiji-pinyin">yí</div>
+                <div class="yiji-char">宜</div>
+                <div class="yiji-items" id="yiItems">
+                  <span class="yiji-item">主动展示自己</span>
+                  <span class="yiji-item">勇敢迈出第一步</span>
+                  <span class="yiji-item">相信眼前的可能</span>
+                </div>
+              </div>
+              <div class="yiji-divider"></div>
+              <div class="yiji-col">
+                <div class="yiji-pinyin">jì</div>
+                <div class="yiji-char">忌</div>
+                <div class="yiji-items" id="jiItems">
+                  <span class="yiji-item">缄默不语</span>
+                  <span class="yiji-item">原地踏步</span>
+                  <span class="yiji-item">困于过去</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- P1 FOOTER -->
+            <div class="card-footer">
+              <span class="footer-action" id="footerAction" onclick="goToCardPage(1,true)" style="cursor:pointer">获取每日指引</span>
+              <button class="footer-btn" onclick="goToCardPage(1,true)">
+                <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+            </div>
+
+          </div><!-- /cardPage0 -->
+
+          <!-- ─── PAGE 2: 详情报告 ─── -->
+          <div class="card-page" id="cardPage1">
+
+            <!-- P2 SCORE BANNER -->
+            <div class="p2-score-banner">
+              <div class="p2-score-left">
+                <span class="p2-score-label" id="p2ScoreLabel">综合指数</span>
+                <div style="display:flex;align-items:baseline;gap:2px">
+                  <span class="p2-score-num" id="p2ScoreNum">74</span>
+                  <span class="p2-score-unit">分</span>
+                </div>
+              </div>
+              <div class="p2-score-right">
+                <span class="p2-zodiac-tag" id="p2ZodiacTag">双子座</span>
+                <span class="p2-energy-badge" id="p2EnergyBadge">高能量</span>
+              </div>
+            </div>
+
+            <!-- P2 DIMS (星座模式下显示) -->
+            <div class="p2-block" id="p2DimSection">
+              <div class="p2-section-title">运势维度</div>
+              <div class="p2-dim-list" id="p2DimList"></div>
+            </div>
+
+            <!-- P2 INSIGHT -->
+            <div class="p2-block" id="p2InsightBlock">
+              <div class="p2-section-title">今日洞察</div>
+              <p class="p2-insight" id="p2InsightText"></p>
+              <span class="p2-insight-quote" id="p2InsightQuote"></span>
+            </div>
+
+            <!-- P2 LUCKY (星座模式下显示) -->
+            <div class="p2-block" id="p2LuckySection">
+              <div class="p2-section-title">今日幸运</div>
+              <div class="p2-lucky-grid" id="p2LuckyGrid"></div>
+            </div>
+
+            <!-- P2 TASKS -->
+            <div class="p2-block">
+              <div class="p2-section-title" id="p2TaskLabel">能量任务</div>
+              <div class="p2-task-list" id="p2TaskList"></div>
+            </div>
+
+            <!-- P2 FOOTER -->
+            <div class="card-footer">
+              <div class="p2-back-hint" onclick="goToCardPage(0,true)" style="cursor:pointer">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+                <span>返回</span>
+              </div>
+              <button class="footer-btn share-btn" style="background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.12)" onclick="openShareSheet()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.85)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3h7v7"/><path d="M21 3C13 3 8 8 8 16"/><path d="M3 21c0-3 1.5-6 4-8"/></svg>
+              </button>
+            </div>
+
+          </div><!-- /cardPage1 -->
+
+        </div><!-- /cardPages -->
+      </div><!-- /cardSwipeWrap -->
+
+      <!-- PAGE DOTS (inside card, at bottom) -->
+      <div class="card-page-dots">
+        <div class="card-dot active"></div>
+        <div class="card-dot"></div>
+      </div>
+
+      <!-- DISCLAIMER (inside card, at bottom) -->
+      <div class="card-disclaimer">仅供参考，AI 生成内容存在随机性，请结合实际情况判断</div>
+
+    </div><!-- /fortune-card -->
+
+  </div><!-- /card-container -->
+
+<!-- TIKTOK CHROME OVERLAYS -->
+  <div class="tiktok-chrome">
+
+    <!-- Right actions -->
+    <div class="right-actions">
+      <div class="action-btn">
+        <div class="action-circle">
+          <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </div>
+        <span class="action-num">2.4w</span>
+      </div>
+      <div class="action-btn">
+        <div class="action-circle">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <span class="action-num">3812</span>
+      </div>
+      <div class="action-btn">
+        <div class="action-circle">
+          <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <span class="action-num">6.4w</span>
+      </div>
+      <div class="action-btn">
+        <div class="action-circle">
+          <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        </div>
+        <span class="action-num">分享</span>
+      </div>
+    </div>
+
+  </div><!-- /tiktok-chrome -->
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="nav-item">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <span class="nav-label">首页</span>
+    </div>
+    <div class="nav-item">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <span class="nav-label">朋友</span>
+    </div>
+    <div class="nav-item" style="flex-shrink:0">
+      <div class="nav-plus-wrap">
+        <div class="nav-plus-icon">＋</div>
+      </div>
+    </div>
+    <div class="nav-item active">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <span class="nav-label">消息</span>
+    </div>
+    <div class="nav-item">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <span class="nav-label">我</span>
+    </div>
+  </div>
+
+
+  <!-- ═══ 分享弹框 ═══ -->
+  <div class="share-mask" id="shareMask" onclick="closeShareSheet(event)" style="display:none">
+    <div class="share-sheet" id="shareSheet">
+      <div class="share-handle"></div>
+      <div class="share-header">
+        <span class="share-title">分享给</span>
+        <button class="share-close" onclick="closeShareSheet()">✕</button>
+      </div>
+
+      <!-- 联系人 -->
+      <div class="share-contacts">
+        <div class="share-contact" onclick="shareToContact('最近分享')">
+          <div class="share-avatar">
+            <div class="share-avatar-img" style="background:linear-gradient(135deg,#f7a8c4,#e06090)">🐰</div>
+          </div>
+          <span class="share-contact-name">最近分享</span>
+          <span class="share-contact-sub">3个会话</span>
+        </div>
+        <div class="share-contact" onclick="shareToContact('问问而川')">
+          <div class="share-avatar">
+            <div class="share-avatar-img" style="background:linear-gradient(135deg,#a0c8f0,#4a80c0)">🌊</div>
+            <div class="share-avatar-dot"></div>
+          </div>
+          <span class="share-contact-name">问问而川</span>
+          <span class="share-contact-sub">今天在线</span>
+        </div>
+        <div class="share-contact" onclick="shareToContact('起意')">
+          <div class="share-avatar">
+            <div class="share-avatar-img" style="background:linear-gradient(135deg,#ffd580,#f0a030)">🎨</div>
+          </div>
+          <span class="share-contact-name">起意</span>
+          <span class="share-contact-sub">昨天在线</span>
+        </div>
+        <div class="share-contact" onclick="shareToContact('多雨饺子')">
+          <div class="share-avatar">
+            <div class="share-avatar-img" style="background:linear-gradient(135deg,#f7a8c4,#d060a0)">🥟</div>
+            <div class="share-avatar-dot"></div>
+          </div>
+          <span class="share-contact-name">多雨饺子</span>
+          <span class="share-contact-sub">刚刚在线</span>
+        </div>
+        <div class="share-contact" onclick="shareToContact('Pumpki...')">
+          <div class="share-avatar">
+            <div class="share-avatar-img" style="background:linear-gradient(135deg,#c8e8a0,#60b040)">🎃</div>
+            <div class="share-avatar-dot"></div>
+          </div>
+          <span class="share-contact-name">Pumpki...</span>
+          <span class="share-contact-sub">1个朋友在线</span>
+        </div>
+        <div class="share-contact" onclick="shareToContact('卖旺旺')">
+          <div class="share-avatar">
+            <div class="share-avatar-img" style="background:linear-gradient(135deg,#f0c8a0,#d08040)">🐶</div>
+          </div>
+          <span class="share-contact-name">卖旺旺</span>
+          <span class="share-contact-sub">30分钟前</span>
+        </div>
+      </div>
+
+      <div class="share-divider"></div>
+
+      <!-- 功能按钮 -->
+      <div class="share-actions">
+        <div class="share-action" onclick="shareAction('转发到日常')">
+          <div class="share-action-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1DBF73" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+            </svg>
+          </div>
+          <span class="share-action-label">转发到日常</span>
+        </div>
+        <div class="share-action" onclick="shareAction('推荐')">
+          <div class="share-action-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1DA1F2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+            </svg>
+          </div>
+          <span class="share-action-label">推荐</span>
+        </div>
+        <div class="share-action" onclick="shareAction('私信')">
+          <div class="share-action-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </div>
+          <span class="share-action-label">私信</span>
+        </div>
+        <div class="share-action" onclick="shareAction('我的群聊')">
+          <div class="share-action-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          </div>
+          <span class="share-action-label">我的群聊</span>
+        </div>
+        <div class="share-action" onclick="shareAction('帮上热门')">
+          <div class="share-action-icon" style="background:#f4f4f4">
+            <span style="font-size:15px;font-weight:700;font-family:var(--mono);color:#333;letter-spacing:-.04em">DOU+</span>
+          </div>
+          <span class="share-action-label">帮上热门</span>
+        </div>
+        <div class="share-action" onclick="shareAction('分享到微信')">
+          <div class="share-action-icon">
+            <svg viewBox="0 0 24 24" fill="#07C160" stroke="none">
+              <path d="M8.5 13.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM11.5 13.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+              <path fill="none" stroke="#07C160" stroke-width="1.5" d="M12 3C7.03 3 3 6.58 3 11c0 2.38 1.19 4.5 3.07 5.97L5.5 20l3.43-1.71A9.7 9.7 0 0 0 12 19c4.97 0 9-3.58 9-8s-4.03-8-9-8z"/>
+            </svg>
+          </div>
+          <span class="share-action-label">微信</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /frame -->
+</div><!-- /shell -->
+
+<script>
+// ═══════════════════════════
+//  STATE
+// ═══════════════════════════
+const S = {
+  mode: 'zodiac',
+  zodiac: '双子座',
+  moodName: '',
+  moodScore: 0,
+};
+
+// ═══════════════════════════
+//  DATA
+// ═══════════════════════════
+const DATA = {
+  zodiac: {
+    score: 74,
+    energyLevel: '高',
+    dateNum: '16',
+    quote: '花开堪折\n直须折',
+    insight: '你总觉得再等等就会准备好，但其实那个「准备好的时刻」从来不会自己来敲门。今天，是迈出去的好时机。',
+    dims: [
+      { name:'爱情', score:63 },
+      { name:'财富', score:78 },
+      { name:'事业', score:84 },
+      { name:'学习', score:68 },
+      { name:'人际', score:71 },
+    ],
+    lucky: [
+      { icon:'⬜', name:'铂金灰\n幸运色' },
+      { icon:'💎', name:'钻石\n幸运配饰' },
+      { icon:'⏰', name:'09-11点\n幸运时辰' },
+      { icon:'🧭', name:'西北\n幸运方位' },
+    ],
+    tasks: [
+      { text:'再试试那件搁置许久的事情', done:false },
+      { text:'在今天主动展示你的想法与特长', done:false },
+      { text:'深呼吸，相信眼前的可能性', done:false },
+    ],
+    detailQuote: '那些你一直在等的事，不如今天先试一步。',
+    yi: ['主动展示自己','勇敢迈出第一步','相信眼前的可能'],
+    ji: ['缄默不语','原地踏步','困于过去'],
+    tags: '#今日运势 #双子座 #把握机会',
+    aiPill: 'AI 为你推荐 · 你最近关注了星座运势',
+  },
+  mood: {
+    '焦虑': {
+      score: 48, energyLevel: '低',
+      quote: '向内寻找\n那个平静的点',
+      insight: '焦虑往往来自对失控的恐惧。今天，试着把注意力集中在你能掌控的小事上，从一件小事开始，找回节奏感。',
+      yi: ['深呼吸三次','写下三件小成就','一个人散步'],
+      ji: ['反复回想糟糕的事','独处太久','刷手机刷太久'],
+      detailQuote: '你的焦虑很正常，每个人都会有这样的日子。重要的是你意识到了它，那就是进步。',
+      tags: '#心情指数 #焦虑 #情绪管理 #自我和解',
+      aiPill: 'AI 为你推荐 · 根据你的浏览习惯',
+    },
+    '愉快': {
+      score: 85, energyLevel: '高',
+      quote: '好的能量\n应该流动起来',
+      insight: '今天的你状态不错，内心充盈。好的能量应该流动起来，分享你的喜悦，会让这份愉快加倍。',
+      yi: ['约朋友出门','尝试一件新事物','主动关心身边人'],
+      ji: ['被负能量带跑','消耗在内耗上','无效社交'],
+      detailQuote: '你今天散发的光，是有人一直在等待的温暖。',
+      tags: '#心情指数 #愉快 #今日状态 #情绪管理',
+      aiPill: 'AI 为你推荐 · 今日心情疗愈',
+    },
+    '疲惫': {
+      score: 55, energyLevel: '中',
+      quote: '允许自己\n慢下来一点',
+      insight: '疲惫是身体在说"我需要一点空间"。今天不需要做完所有事，允许自己慢下来，就是最好的自我照顾。',
+      yi: ['小憩二十分钟','喝温水','一件事只做一件'],
+      ji: ['强撑高强度任务','反复刷手机','逼自己做太多'],
+      detailQuote: '累了就停下来，不是放弃，是为了走得更远。',
+      tags: '#心情指数 #疲惫 #情绪管理 #好好休息',
+      aiPill: 'AI 为你推荐 · 今日心情疗愈',
+    },
+    '平静': {
+      score: 72, energyLevel: '中',
+      quote: '内心平静的人\n走路带风',
+      insight: '平静是一种难得的状态，说明你内心已经找到了某种平衡。今天非常适合做需要专注和深度思考的事。',
+      yi: ['阅读','整理桌面','写下本周目标'],
+      ji: ['被紧急事打断','无意义切换任务','过度消耗注意力'],
+      detailQuote: '平静不是冷漠，是一种沉在水底的稳。',
+      tags: '#心情指数 #平静 #情绪管理 #专注',
+      aiPill: 'AI 为你推荐 · 今日心情疗愈',
+    },
+    '低落': {
+      score: 40, energyLevel: '低',
+      quote: '低谷不是终点\n是休息的地方',
+      insight: '低落的感觉是正常的，不需要假装没事。今天允许自己脆弱一点，不需要表现得很好，你已经做到了。',
+      yi: ['联系一个信任的人','出门走走十分钟','做一件喜欢的小事'],
+      ji: ['独自压抑','反复刷社交媒体','和不合适的人倾诉'],
+      detailQuote: '低谷不是终点，是休息的地方。',
+      tags: '#心情指数 #低落 #情绪管理 #自我关怀',
+      aiPill: 'AI 为你推荐 · 今日心情疗愈',
+    },
+    '亢奋': {
+      score: 90, energyLevel: '极高',
+      quote: '你今天的能量\n足以点亮一座城',
+      insight: '你的能量今天满满当当！这股劲很宝贵，但记得有节奏地使用它，峰值之后需要安排一些放松时刻。',
+      yi: ['开启大项目','头脑风暴','做一件需要勇气的事'],
+      ji: ['冲动决策','过度消耗精力','事后不留缓冲时间'],
+      detailQuote: '你今天的能量，足以点亮一整座城。',
+      tags: '#心情指数 #亢奋 #今日状态 #冲劲满满',
+      aiPill: 'AI 为你推荐 · 今日心情疗愈',
+    },
+  }
+};
+
+// ═══════════════════════════
+//  INIT
+// ═══════════════════════════
+function init() {
+  const today = new Date();
+  document.getElementById('scoreDateNum').textContent = today.getDate();
+  const dateStr = `${today.getFullYear()} / ${String(today.getMonth()+1).padStart(2,'0')} / ${String(today.getDate()).padStart(2,'0')} 周${'日一二三四五六'[today.getDay()]}`;
+  document.getElementById('cardDate').textContent = dateStr;
+
+  // Greeting based on time
+  const h = today.getHours();
+  let greet, icon;
+  if (h >= 5 && h < 9)  { greet = '早上好，'; icon = '🌤️'; }
+  else if (h >= 9 && h < 12) { greet = '上午好，'; icon = '☀️'; }
+  else if (h >= 12 && h < 14) { greet = '午安，'; icon = '🌞'; }
+  else if (h >= 14 && h < 18) { greet = '下午好，'; icon = '🌤️'; }
+  else if (h >= 18 && h < 21) { greet = '傍晚好，'; icon = '🌆'; }
+  else { greet = '晚上好，'; icon = '🌙'; }
+  const gt = document.getElementById('greetingText');
+  const gi = document.getElementById('greetingIcon');
+  if (gt) gt.textContent = greet;  /* only updates line1 time phrase */
+  if (gi) gi.textContent = icon;
+
+  // ── Seasonal flower background ──
+  setSeasonalFlower(today.getMonth());
+
+  // Initialize card swipe
+  initCardSwipe();
+  // Populate P2 with default zodiac data
+  buildPage2();
+  // Set initial wrap height to page 0 after DOM is ready
+  requestAnimationFrame(() => goToCardPage(0, false));
+}
+
+// ═══════════════════════════
+//  CARD SWIPE (2-page)
+// ═══════════════════════════
+const CS = { page: 0 };
+
+function goToCardPage(idx, animate) {
+  const total = 2;
+  idx = Math.max(0, Math.min(total - 1, idx));
+  CS.page = idx;
+  const pages = document.getElementById('cardPages');
+  const wrap = document.getElementById('cardSwipeWrap');
+
+  // Sync P2 height to P1 so it never stretches the card taller
+  const p1 = document.getElementById('cardPage0');
+  const p2 = document.getElementById('cardPage1');
+  if (p1 && p2) {
+    const h = p1.offsetHeight;
+    if (h > 0) p2.style.maxHeight = h + 'px';
+  }
+
+  if (!animate) {
+    pages.style.transition = 'none';
+    if (wrap) wrap.style.transition = 'none';
+  }
+  // translateX in % is relative to .card-pages (200% wide), so each page = 50%
+  pages.style.transform = `translateX(${-idx * 50}%)`;
+  if (!animate) {
+    pages.offsetHeight; // reflow
+    pages.style.transition = '';
+    if (wrap) wrap.style.transition = '';
+  }
+  // update dots
+  document.querySelectorAll('.card-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === idx);
+  });
+}
+
+function initCardSwipe() {
+  const wrap = document.getElementById('cardSwipeWrap');
+  if (!wrap || wrap._swipeInit) return;
+  wrap._swipeInit = true;
+
+  let startX = 0, startY = 0, dragging = false, horiz = null;
+
+  wrap.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    dragging = true; horiz = null;
+  }, { passive: true });
+
+  wrap.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+    if (horiz === null) horiz = Math.abs(dx) > Math.abs(dy);
+    if (horiz) e.preventDefault();
+  }, { passive: false });
+
+  wrap.addEventListener('touchend', e => {
+    if (!dragging || !horiz) { dragging = false; return; }
+    const dx = e.changedTouches[0].clientX - startX;
+    dragging = false;
+    if (Math.abs(dx) > 40) goToCardPage(CS.page + (dx < 0 ? 1 : -1), true);
+  });
+
+  // mouse for desktop
+  wrap.addEventListener('mousedown', e => { startX = e.clientX; dragging = true; });
+  wrap.addEventListener('mouseleave', () => { dragging = false; });
+  wrap.addEventListener('mouseup', e => {
+    if (!dragging) return;
+    const dx = e.clientX - startX;
+    dragging = false;
+    if (Math.abs(dx) > 40) goToCardPage(CS.page + (dx < 0 ? 1 : -1), true);
+  });
+}
+
+// ═══════════════════════════
+//  MOOD SELECT
+// ═══════════════════════════
+function selectMood(btn, mood, score) {
+  document.querySelectorAll('.mood-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  S.mode = 'mood';
+  S.moodName = mood;
+  S.moodScore = score;
+
+  const d = DATA.mood[mood];
+
+  // Update card header (page 1)
+  document.getElementById('cardLabel').textContent = '今日心情指数';
+  document.getElementById('cardTitle').textContent = mood;
+  document.getElementById('energyVal').textContent = d.energyLevel;
+
+  // Show mood score, hide zodiac score
+  document.getElementById('scoreSection').style.display = 'none';
+  document.getElementById('moodResultSection').style.display = 'block';
+  document.getElementById('moodScoreNum').textContent = score;
+  setTimeout(() => {
+    document.getElementById('moodBarFill').style.width = score + '%';
+  }, 50);
+
+  // Update quote
+  document.getElementById('cardQuote').innerHTML = d.quote.split('\n').join('<br>');
+
+  // Update yi/ji
+  document.getElementById('yiItems').innerHTML = d.yi.map(t=>`<span class="yiji-item">${t}</span>`).join('');
+  document.getElementById('jiItems').innerHTML = d.ji.map(t=>`<span class="yiji-item">${t}</span>`).join('');
+
+  // Update blob color
+  const blobColors = {
+    '焦虑':'radial-gradient(circle,#C4B0C0,#9A8A9E,#7A6A82)',
+    '愉快':'radial-gradient(circle,#FFD166,#F5A623,#E8903C)',
+    '疲惫':'radial-gradient(circle,#B0C4D8,#8AAABB,#6A8A9A)',
+    '平静':'radial-gradient(circle,#B8D4C0,#8AB8A0,#6A9A80)',
+    '低落':'radial-gradient(circle,#C0C4D4,#9A9EB8,#7A7E96)',
+    '亢奋':'radial-gradient(circle,#FFB347,#FF8C42,#FF6B35)',
+  };
+  document.getElementById('blob').style.background = blobColors[mood] || blobColors['平静'];
+
+  // Footer hint
+  document.getElementById('footerAction').textContent = '查看今日疗愈建议';
+
+  // Rebuild page 2 with mood data
+  buildPage2();
+}
+
+// ═══════════════════════════
+//  PAGE 2 (详情报告版)
+// ═══════════════════════════
+const el = id => document.getElementById(id);
+
+function buildPage2() {
+  const isZodiac = S.mode === 'zodiac';
+  const d = isZodiac ? DATA.zodiac : DATA.mood[S.moodName];
+
+  // Score banner
+  el('p2ScoreLabel').textContent  = isZodiac ? '综合指数' : '心情指数';
+  el('p2ScoreNum').textContent    = isZodiac ? d.score : S.moodScore;
+  el('p2ZodiacTag').textContent   = isZodiac ? '双子座' : S.moodName;
+  el('p2EnergyBadge').textContent = (d.energyLevel || '—') + ' 能量';
+
+  // 维度（仅星座模式）
+  el('p2DimSection').style.display = isZodiac ? '' : 'none';
+  if (isZodiac && d.dims) {
+    el('p2DimList').innerHTML = d.dims.map((dim, i) => `
+      <div class="p2-dim-row">
+        <span class="p2-dim-name">${dim.name}</span>
+        <div class="p2-dim-track"><div class="p2-dim-fill" id="p2fill${i}"></div></div>
+        <span class="p2-dim-val">${dim.score}</span>
+      </div>
+    `).join('');
+    setTimeout(() => {
+      d.dims.forEach((dim, i) => {
+        const fill = el('p2fill' + i);
+        if (fill) fill.style.width = dim.score + '%';
+      });
+    }, 80);
+  }
+
+  // 洞察
+  el('p2InsightText').textContent  = d.insight || '';
+  el('p2InsightQuote').textContent = d.detailQuote || '';
+
+  // 幸运（仅星座模式）
+  el('p2LuckySection').style.display = isZodiac ? '' : 'none';
+  if (isZodiac && d.lucky) {
+    el('p2LuckyGrid').innerHTML = d.lucky.map(item => {
+      const [val, label] = item.name.split('\n');
+      return `
+        <div class="p2-lucky-tile">
+          <span class="p2-lucky-icon">${item.icon}</span>
+          <span class="p2-lucky-val">${val || ''}</span>
+          <span class="p2-lucky-label">${label || ''}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // 任务
+  el('p2TaskLabel').textContent = isZodiac ? '能量任务' : '今日疗愈';
+  const tasks = isZodiac
+    ? d.tasks.map(t => ({ text: t.text }))
+    : d.yi.map(t => ({ text: t }));
+  el('p2TaskList').innerHTML = tasks.map(t => `
+    <div class="p2-task-row">
+      <div class="p2-task-dot"></div>
+      <span class="p2-task-text">${t.text}</span>
+    </div>
+  `).join('');
+
+}
+
+
+// ═══════════════════════════════════════════════════
+//  ALMANAC TEAR v4 — 手势驱动撕裂
+//
+//  交互逻辑：
+//  1. 手指/鼠标按下开始拖动
+//  2. 向下拖动 → 实时更新 clip-path，纸张跟手撕开
+//     (progress 0→1 对应"从左到右"的锯齿裂口扩展)
+//  3. 同时纸张随拖动距离轻微下移+旋转（跟手感）
+//  4. 松手时：
+//     - 进度 > 阈值(0.55) → 触发掉落动画 + 纸屑迸溅
+//     - 进度 ≤ 阈值 → 弹回归位（spring back）
+// ═══════════════════════════════════════════════════
+(function initAlmanacTear() {
+  const page      = document.getElementById('almanacPage');
+  const container = document.getElementById('cardPage0');
+  if (!page || !container) return;
+
+  // ── 状态 ──────────────────────────────────────────
+  let dragging   = false;
+  let done       = false;
+  let startY     = 0;
+  let currentDY  = 0;          // 当前拖动距离（px）
+  const DRAG_MAX  = 160;       // 拖满此距离 = progress 1.0
+  const THRESHOLD = 0.55;      // 超过此进度松手即完成撕裂
+
+  // TEETH 常量（提升到外层，避免每帧重建）
+  const TEETH = [];
+  for (let x = 0; x <= 100; x += 3) TEETH.push(x);
+  // 完整圆角多边形（snapBack 目标 / 初始状态）
+  const FULL_CLIP = 'polygon(6.25% 0%, 93.75% 0%, 100% 0%, 100% 6.25%, 100% 93.75%, 100% 100%, 93.75% 100%, 6.25% 100%, 0% 100%, 0% 93.75%, 0% 6.25%, 0% 0%)';
+
+  // 根据 progress(0~1) 生成锯齿 clip-path 字符串
+  function buildClipPath(progress) {
+    const frontX = progress * 100;
+    const topPts = ['0% 6.25%', '0% 0%', '6.25% 0%'];
+    for (let i = 0; i < TEETH.length; i++) {
+      const x = TEETH[i];
+      if (x < 6.25) continue;
+      if (x > frontX) {
+        topPts.push(`${x}% 0`);
+      } else {
+        const amplitude = 5 + 2 * Math.sin(i * 1.7);
+        const up   = (i % 2 === 0) ? amplitude : 0;
+        const down = (i % 2 === 0) ? 0 : amplitude;
+        topPts.push(`${x}% ${down}%`);
+        const nextX = TEETH[i + 1] !== undefined ? TEETH[i + 1] : 100;
+        const midX  = (x + nextX) / 2;
+        if (midX <= frontX) topPts.push(`${midX}% ${up}%`);
+      }
+    }
+    topPts.push('93.75% 0%', '100% 0%');
+    const bottomPts = [
+      '100% 6.25%', '100% 93.75%', '100% 100%',
+      '93.75% 100%', '6.25% 100%', '0% 100%',
+      '0% 93.75%', '0% 6.25%',
+    ];
+    return `polygon(${[...topPts, ...bottomPts].join(', ')})`;
+  }
+
+  function applyDrag(dy) {
+    const progress = Math.min(dy / DRAG_MAX, 1);
+    const offsetY  = dy * 0.35;
+    const rotate   = progress * 1.8;
+    page.style.transition = 'none';
+    page.style.clipPath   = buildClipPath(progress);
+    page.style.transform  = `translateY(${offsetY}px) rotate(${rotate}deg)`;
+  }
+
+  // ── 弹回归位 ────────────────────────────────────────
+  function snapBack() {
+    page.style.transition = 'clip-path 0.35s ease, transform 0.35s ease';
+    page.style.clipPath   = FULL_CLIP;
+  page.style.transform  = 'translateY(0) rotate(0deg)';
+  }
+
+  // ── 纸屑粒子系统 ─────────────────────────────────────
+  function spawnConfetti(tearProgress) {
+    const canvas = document.createElement('canvas');
+    const rect   = container.getBoundingClientRect();
+    canvas.width  = rect.width  || container.offsetWidth  || 320;
+    canvas.height = rect.height || container.offsetHeight || 520;
+    Object.assign(canvas.style, {
+      position: 'absolute', inset: '0',
+      zIndex: '30', pointerEvents: 'none',
+      borderRadius: 'inherit',
+    });
+    container.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+
+    const COLORS = [
+      'rgba(255,255,255,0.92)', 'rgba(245,240,230,0.88)',
+      'rgba(235,228,215,0.85)', 'rgba(220,210,195,0.80)',
+      'rgba(200,190,175,0.75)',
+    ];
+
+    // 粒子沿顶部裂口散布，密度与撕裂进度匹配
+    const COUNT = Math.round(30 + tearProgress * 26);
+    const particles = Array.from({ length: COUNT }, (_, i) => {
+      // 只在已撕区域（0~tearProgress）内分布
+      const px = Math.random() * tearProgress * W;
+      const py = H * (0.01 + Math.random() * 0.06);
+      return {
+        x: px + (Math.random() - 0.5) * 12,
+        y: py,
+        vx: (Math.random() - 0.5) * 4.2,
+        vy: -(2.5 + Math.random() * 4.5),
+        angle: Math.random() * Math.PI * 2,
+        angularV: (Math.random() - 0.5) * 0.28,
+        w: 2.5 + Math.random() * 6,
+        h: 1.5 + Math.random() * 4,
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        delay: (px / W) * 16,
+        alpha: 1, dead: false,
+      };
+    });
+
+    let frame = 0;
+    (function tick() {
+      ctx.clearRect(0, 0, W, H);
+      let allDead = true;
+      for (const p of particles) {
+        if (p.dead) continue;
+        allDead = false;
+        if (frame < p.delay) { allDead = false; continue; }
+        p.vy += 0.22; p.vx *= 0.97;
+        p.x += p.vx; p.y += p.vy;
+        p.angle += p.angularV;
+        p.alpha -= p.y < -10 ? 0.035 : 0.011;
+        if (p.alpha <= 0 || p.y > H + 30) { p.dead = true; continue; }
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.alpha);
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.angle);
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = 'rgba(0,0,0,0.15)';
+        ctx.shadowBlur  = 2;
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        ctx.restore();
+      }
+      frame++;
+      allDead ? canvas.remove() : requestAnimationFrame(tick);
+    })();
+  }
+
+  // ── 松手后完成撕裂：CSS 掉落动画 ───────────────────
+  function triggerFall(startProgress) {
+    done = true;
+    // 隐藏卷角提示
+    const curl = page.querySelector('.alm-corner-curl');
+    const hint = page.querySelector('.alm-curl-hint');
+    if (curl) curl.style.opacity = '0';
+    if (hint) hint.style.opacity = '0';
+
+    // 粒子迸溅
+    spawnConfetti(startProgress);
+
+    // 接管动画：从当前位置继续掉落
+    page.style.transition = 'none';
+    // 先构造完整锯齿顶边（固定不变）
+    const clipPath = buildClipPath(1);
+
+    // 用 requestAnimationFrame 做掉落（不依赖 CSS animation，避免与 inline style 冲突）
+    let vy = 4, vr = 0.04, y = currentDY * 0.35, r = startProgress * 1.8;
+    let opacity = 1;
+    const H = container.offsetHeight || 600;
+
+    (function fall() {
+      vy  *= 1.08;             // 加速
+      vr  += 0.008;
+      y   += vy;
+      r   += vr;
+      opacity -= 0.022;
+      page.style.clipPath  = clipPath;
+      page.style.transform = `translateY(${y}px) rotate(${r}deg)`;
+      page.style.opacity   = Math.max(0, opacity);
+      if (opacity > 0 && y < H + 100) {
+        requestAnimationFrame(fall);
+      } else {
+        page.style.display       = 'none';
+        page.style.pointerEvents = 'none';
+      }
+    })();
+  }
+
+  // ── 指针事件统一处理（同时支持 touch + mouse）──────
+  function getY(e) {
+    return e.touches ? e.touches[0].clientY : e.clientY;
+  }
+
+  function onStart(e) {
+    if (done) return;
+    dragging = true;
+    startY   = getY(e);
+    currentDY = 0;
+    page.style.transition = 'none';
+  }
+
+  function onMove(e) {
+    if (!dragging || done) return;
+    const dy = Math.max(0, getY(e) - startY); // 只响应向下拖
+    currentDY = dy;
+    applyDrag(dy);
+  }
+
+  function onEnd() {
+    if (!dragging || done) return;
+    dragging = false;
+    const progress = Math.min(currentDY / DRAG_MAX, 1);
+    if (progress >= THRESHOLD) {
+      triggerFall(progress);
+    } else {
+      snapBack();
+    }
+  }
+
+  // touch
+  page.addEventListener('touchstart', onStart, { passive: true });
+  page.addEventListener('touchmove',  onMove,  { passive: true });
+  page.addEventListener('touchend',   onEnd,   { passive: true });
+  // mouse（桌面预览用）
+  page.addEventListener('mousedown',  onStart);
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup',   onEnd);
+})();
+
+// ═══════════════════════════
+//  SEASONAL FLOWER BACKGROUND
+// ═══════════════════════════
+function setSeasonalFlower(month) {
+  // Each season: SVG watercolor-style blobs mimicking ink wash flower
+  // Colors tuned per Chinese seasonal flower tradition
+  const flowers = {
+    // 冬 → 梅花  plum (Jan, Feb, Dec) — 淡粉白·冷调
+    plum: {
+      c1: 'rgba(240,220,230,0.50)', c2: 'rgba(220,195,210,0.32)',
+      c3: 'rgba(250,235,240,0.22)', c4: 'rgba(210,185,200,0.14)'
+    },
+    // 春 → 樱花  cherry blossom (Mar, Apr) — 浅樱粉·极淡
+    cherry: {
+      c1: 'rgba(252,230,235,0.50)', c2: 'rgba(240,210,220,0.30)',
+      c3: 'rgba(255,242,245,0.20)', c4: 'rgba(235,205,215,0.13)'
+    },
+    // 初夏 → 新芽  young leaf (May, Jun) — 嫩黄绿·清新
+    peony: {
+      c1: 'rgba(200,225,160,0.48)', c2: 'rgba(175,210,130,0.30)',
+      c3: 'rgba(225,240,185,0.22)', c4: 'rgba(160,200,115,0.14)'
+    },
+    // 夏 → 荷叶  lotus leaf (Jul, Aug) — 翠绿·清凉
+    lotus: {
+      c1: 'rgba(155,210,175,0.44)', c2: 'rgba(120,190,150,0.27)',
+      c3: 'rgba(185,230,200,0.20)', c4: 'rgba(110,180,140,0.13)'
+    },
+    // 秋 → 银杏  ginkgo (Sep, Oct) — 金黄·温暖
+    chrysanthemum: {
+      c1: 'rgba(245,220,110,0.46)', c2: 'rgba(225,200,80,0.28)',
+      c3: 'rgba(255,238,160,0.20)', c4: 'rgba(210,185,70,0.13)'
+    },
+    // 初冬 → 蜡梅  wintersweet (Nov) — 蜜黄·淡雅
+    camellia: {
+      c1: 'rgba(248,230,170,0.48)', c2: 'rgba(230,210,140,0.30)',
+      c3: 'rgba(255,245,200,0.22)', c4: 'rgba(220,195,125,0.14)'
+    }
+  };
+
+  const map = [
+    'plum','plum','cherry','cherry','peony','peony',
+    'lotus','lotus','chrysanthemum','chrysanthemum','camellia','plum'
+  ];
+  const f = flowers[map[month]];
+
+  // Build SVG: layered radial blobs with soft gaussian-like spread
+  // Positioned top-right to mirror the ref photo aesthetic
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 520" width="400" height="520">
+    <defs>
+      <filter id="blur1"><feGaussianBlur stdDeviation="18"/></filter>
+      <filter id="blur2"><feGaussianBlur stdDeviation="28"/></filter>
+      <filter id="blur3"><feGaussianBlur stdDeviation="40"/></filter>
+    </defs>
+    <!-- outermost halo -->
+    <ellipse cx="240" cy="160" rx="200" ry="175" fill="${f.c4}" filter="url(#blur3)"/>
+    <!-- mid bloom -->
+    <ellipse cx="255" cy="140" rx="145" ry="125" fill="${f.c3}" filter="url(#blur2)"/>
+    <!-- petal clusters — 5 petals radiating from center -->
+    <ellipse cx="240" cy="80"  rx="72" ry="55"  fill="${f.c2}" filter="url(#blur1)" transform="rotate(-15 240 80)"/>
+    <ellipse cx="320" cy="130" rx="68" ry="50"  fill="${f.c2}" filter="url(#blur1)" transform="rotate(30 320 130)"/>
+    <ellipse cx="290" cy="210" rx="65" ry="52"  fill="${f.c2}" filter="url(#blur1)" transform="rotate(10 290 210)"/>
+    <ellipse cx="175" cy="210" rx="62" ry="50"  fill="${f.c2}" filter="url(#blur1)" transform="rotate(-20 175 210)"/>
+    <ellipse cx="165" cy="120" rx="70" ry="52"  fill="${f.c2}" filter="url(#blur1)" transform="rotate(-35 165 120)"/>
+    <!-- core -->
+    <ellipse cx="235" cy="155" rx="55" ry="48"  fill="${f.c1}" filter="url(#blur1)"/>
+    <!-- ink stem / stamen hint -->
+    <ellipse cx="248" cy="268" rx="18" ry="60"  fill="rgba(60,80,50,0.07)" filter="url(#blur2)" transform="rotate(8 248 268)"/>
+  </svg>`;
+
+  const encoded = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  document.documentElement.style.setProperty('--seasonal-flower-svg', `url("${encoded}")`);
+}
+
+// ═══════════════════════════
+//  UTILS
+// ═══════════════════════════
+function showToast(msg) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; }, 1800);
+  setTimeout(() => t.remove(), 2200);
+}
+
+// ═══════════════════════════
+//  3D TILT + GLOW (今日运势卡片)
+// ═══════════════════════════
+(function initCardTilt() {
+  const card = document.getElementById('fortuneCard');
+  const glow = document.getElementById('cardGlowOverlay');
+  if (!card || !glow) return;
+
+  const MAX_TILT = 8;     // 最大倾斜角度（度）
+  const EASE     = 0.12;  // 平滑系数（越小越丝滑）
+
+  let targetRx = 0, targetRy = 0;
+  let currentRx = 0, currentRy = 0;
+  let rafId = null;
+  let isHover = false;
+
+  function lerp(a, b, t) { return a + (b - a) * t; }
+
+  function tick() {
+    currentRx = lerp(currentRx, targetRx, EASE);
+    currentRy = lerp(currentRy, targetRy, EASE);
+
+    const dist = Math.sqrt(currentRx * currentRx + currentRy * currentRy);
+    if (!isHover && dist < 0.05) {
+      card.style.transform = '';
+      card.style.boxShadow = '';
+      rafId = null;
+      return;
+    }
+
+    const shadow = `0 ${8 + Math.abs(currentRx)}px ${28 + dist * 3}px rgba(0,0,0,${0.12 + dist * 0.012})`;
+    card.style.transform = `perspective(900px) rotateX(${currentRx}deg) rotateY(${currentRy}deg) scale3d(1.012,1.012,1)`;
+    card.style.boxShadow = shadow;
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function handleMove(clientX, clientY) {
+    const rect = card.getBoundingClientRect();
+    const cx   = rect.left + rect.width  / 2;
+    const cy   = rect.top  + rect.height / 2;
+    // Normalized -1 ~ +1
+    const nx = (clientX - cx) / (rect.width  / 2);
+    const ny = (clientY - cy) / (rect.height / 2);
+
+    targetRy =  nx * MAX_TILT;
+    targetRx = -ny * MAX_TILT;
+
+    // Update glow position (% within card)
+    const gx = ((clientX - rect.left) / rect.width  * 100).toFixed(1) + '%';
+    const gy = ((clientY - rect.top ) / rect.height * 100).toFixed(1) + '%';
+    card.style.setProperty('--gx', gx);
+    card.style.setProperty('--gy', gy);
+
+    if (!rafId) rafId = requestAnimationFrame(tick);
+  }
+
+  // ── Mouse ────────────────────────────────────
+  card.addEventListener('mouseenter', () => {
+    isHover = true;
+    card.classList.add('tilt-active');
+  });
+  card.addEventListener('mousemove', e => {
+    handleMove(e.clientX, e.clientY);
+  });
+  card.addEventListener('mouseleave', () => {
+    isHover = false;
+    targetRx = 0;
+    targetRy = 0;
+    card.classList.remove('tilt-active');
+    if (!rafId) rafId = requestAnimationFrame(tick);
+  });
+
+  // ── Touch ────────────────────────────────────
+  card.addEventListener('touchmove', e => {
+    if (e.touches.length === 1) {
+      handleMove(e.touches[0].clientX, e.touches[0].clientY);
+      card.classList.add('tilt-active');
+    }
+  }, { passive: true });
+  card.addEventListener('touchend', () => {
+    isHover = false;
+    targetRx = 0;
+    targetRy = 0;
+    card.classList.remove('tilt-active');
+    if (!rafId) rafId = requestAnimationFrame(tick);
+  }, { passive: true });
+})();
+
+// ═══════════════════════════
+//  SHARE SHEET
+// ═══════════════════════════
+function openShareSheet() {
+  const mask = document.getElementById('shareMask');
+  if (!mask) return;
+  mask.style.display = 'block';
+  requestAnimationFrame(() => mask.classList.add('open'));
+}
+
+function closeShareSheet(e) {
+  if (e && e.target !== document.getElementById('shareMask')) return;
+  const mask = document.getElementById('shareMask');
+  if (!mask) return;
+  mask.classList.remove('open');
+  setTimeout(() => { mask.style.display = 'none'; }, 320);
+}
+
+function shareToContact(name) {
+  closeShareSheet();
+  setTimeout(() => showToast(`已发送给 ${name}`), 340);
+}
+
+function shareAction(action) {
+  closeShareSheet();
+  setTimeout(() => showToast(`已执行：${action}`), 340);
+}
+
+// ═══════════════════════════
+//  BOOT
+// ═══════════════════════════
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

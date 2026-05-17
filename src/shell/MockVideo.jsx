@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import styles from './MockVideo.module.css';
 
 // "普通短视频" mock：传 src 则播放 mp4，不传则黑底占位
-export default function MockVideo({ variant, src, active, soundEnabled }) {
+export default function MockVideo({ variant, src, active, soundEnabled, letterbox }) {
   const videoRef = useRef(null);
 
   // active 切换时自动播放/暂停
@@ -33,7 +33,7 @@ export default function MockVideo({ variant, src, active, soundEnabled }) {
   return (
     <video
       ref={videoRef}
-      className={styles.video}
+      className={letterbox ? styles.videoLetterbox : styles.video}
       src={src}
       loop
       muted={!soundEnabled}

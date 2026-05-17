@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>好灵 · 卡片画廊</title>
+<link rel="icon" type="image/png" href="/gallery/logo-haoling.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after {
+    margin: 0; padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :root {
+    --bone:    #F2EFE9;
+    --bone-2:  #EAE6DD;
+    --card:    #FAFAF9;
+    --ink:     #1A1A1A;
+    --ink-2:   #3A3A3A;
+    --muted:   #8C8C8C;
+    --accent:  #B5341C;
+    --border:  rgba(0,0,0,0.08);
+    --serif:   'Noto Serif SC', 'Songti SC', 'STSong', serif;
+    --sans:    -apple-system, 'PingFang SC', 'Helvetica Neue', sans-serif;
+  }
+
+  html, body {
+    background: var(--bone);
+    color: var(--ink);
+    font-family: var(--serif);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 56px 24px 80px;
+  }
+
+  /* ── 页头 ── */
+  header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  header .logo {
+    height: 96px;
+    width: auto;
+    display: block;
+    margin: 0 auto 20px;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+  header .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.4em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  header h1 {
+    font-size: 36px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    line-height: 1.25;
+    color: var(--ink);
+    margin-bottom: 14px;
+  }
+  header h1 .accent { color: var(--accent); }
+  header p {
+    font-size: 14px;
+    color: var(--ink-2);
+    letter-spacing: 0.04em;
+    line-height: 1.7;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+  header .rule {
+    width: 32px;
+    height: 1px;
+    background: rgba(0,0,0,0.18);
+    margin: 24px auto 0;
+  }
+
+  /* ── 网格 ── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 28px;
+  }
+
+  /* ── 卡片 ── */
+  .card {
+    display: block;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+    position: relative;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px -16px rgba(0,0,0,0.18);
+    border-color: rgba(0,0,0,0.16);
+  }
+  .card .thumb {
+    width: 100%;
+    aspect-ratio: 9 / 16;
+    background: var(--bone-2);
+    overflow: hidden;
+    position: relative;
+  }
+  .card .thumb img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s ease;
+  }
+  .card:hover .thumb img { transform: scale(1.03); }
+
+  .card .meta {
+    padding: 18px 20px 20px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .card .meta .text { min-width: 0; }
+  .card .title {
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .card .desc {
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .card .arrow {
+    flex-shrink: 0;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-2);
+    font-family: var(--sans);
+    transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  }
+  .card:hover .arrow {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+
+  /* 角标 */
+  .card .badge {
+    position: absolute;
+    top: 12px; left: 12px;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--ink-2);
+    font-family: var(--sans);
+    z-index: 2;
+  }
+
+  /* ── 产品理念 ── */
+  .philosophy {
+    margin-top: 96px;
+    padding-top: 64px;
+    border-top: 1px solid var(--border);
+  }
+  .philosophy .section-eyebrow {
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    font-family: var(--sans);
+  }
+  .philosophy .section-title {
+    text-align: center;
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    color: var(--ink);
+    margin-bottom: 56px;
+  }
+  .philosophy .columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 56px;
+  }
+  .philosophy article h3 {
+    font-size: 19px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .philosophy article .sub {
+    font-size: 11px;
+    letter-spacing: 0.24em;
+    color: var(--muted);
+    font-family: var(--sans);
+    text-transform: uppercase;
+    margin-bottom: 22px;
+  }
+  .philosophy article p {
+    font-size: 14px;
+    line-height: 1.85;
+    color: var(--ink-2);
+    letter-spacing: 0.03em;
+    margin-bottom: 14px;
+  }
+  .philosophy article p strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .gestures {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 20px;
+  }
+  .gestures span {
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    color: var(--ink-2);
+    background: var(--card);
+  }
+  .gestures span em {
+    font-style: normal;
+    color: var(--accent);
+    font-weight: 500;
+    margin-right: 4px;
+  }
+  .keypair {
+    display: flex;
+    gap: 24px;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--border);
+  }
+  .keypair > div {
+    flex: 1;
+    text-align: center;
+  }
+  .keypair .k {
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--accent);
+    margin-bottom: 4px;
+    letter-spacing: 0.08em;
+  }
+  .keypair .v {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    font-family: var(--sans);
+    text-transform: uppercase;
+  }
+
+  /* ── 页脚 ── */
+  footer {
+    text-align: center;
+    margin-top: 64px;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    font-family: var(--sans);
+  }
+
+  /* 移动端 */
+  @media (max-width: 640px) {
+    .page { padding: 36px 18px 64px; }
+    header { margin-bottom: 32px; }
+    header .logo { height: 72px; margin-bottom: 14px; }
+    header h1 { font-size: 26px; }
+    .philosophy { margin-top: 64px; padding-top: 44px; }
+    .philosophy .section-title { font-size: 20px; margin-bottom: 36px; }
+    .philosophy .columns { grid-template-columns: 1fr; gap: 40px; }
+    .philosophy article h3 { font-size: 17px; }
+    .philosophy article p { font-size: 13px; }
+    .keypair .k { font-size: 24px; }
+    header p { font-size: 13px; }
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    .card { border-radius: 14px; }
+    .card .meta { padding: 14px 14px 16px; }
+    .card .title { font-size: 14px; }
+    .card .desc { font-size: 11px; }
+    .card .arrow { width: 26px; height: 26px; font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <img class="logo" src="/gallery/logo-haoling.png" alt="好灵" />
+      <div class="eyebrow">HAOLING · 玄学疗愈</div>
+      <h1>五种<span class="accent">随机</span>玄学卡片</h1>
+      <p>抖音信息流里的轻量占卜体验。点击任意卡片进入，沉浸式手机原型。</p>
+      <div class="rule"></div>
+    </header>
+
+    <section class="grid">
+      <a class="card" href="/demo">
+        <div class="thumb">
+          <span class="badge">新春运势</span>
+          <img src="/gallery/demo.png" alt="新春快乐 2026 · 年度关键词" loading="lazy" />
+        </div>
+        <div class="meta">
+          <div class="text">
+            <div class="title">年度关键词</div>
+            <div class="desc">丙午年 · 马年大吉</div>
+          </div>
+          <div class="arrow">→</div>
+        </div>
+      </a>
+
+      <a class="card" href="/">
+        <div class="thumb">
+          <span class="badge">3D 摇签</span>
+          <img src="/gallery/qiuqian.png" alt="摇一摇抽签" loading="lazy" />
+        </div>
+        <div class="meta">
+          <div class="text">
+            <div class="title">摇一摇求签</div>
+            <div class="desc">摇动手机，抽取你的签</div>
+          </div>
+          <div class="arrow">→</div>
+        </div>
+      </a>
+
+      <a class="card" href="/xiaoyue">
+        <div class="thumb">
+          <span class="badge">今日运势</span>
+          <img src="/gallery/xiaoyue.png" alt="小月今日运势" loading="lazy" />
+        </div>
+        <div class="meta">
+          <div class="text">
+            <div class="title">今日运势卡片</div>
+            <div class="desc">综合指数 · 宜忌 · 每日指引</div>
+          </div>
+          <div class="arrow">→</div>
+        </div>
+      </a>
+
+      <a class="card" href="/answer">
+        <div class="thumb">
+          <span class="badge">答案之书</span>
+          <img src="/gallery/answer.png" alt="答案之书" loading="lazy" />
+        </div>
+        <div class="meta">
+          <div class="text">
+            <div class="title">答案之书</div>
+            <div class="desc">心里默念问题 · 翻开书页</div>
+          </div>
+          <div class="arrow">→</div>
+        </div>
+      </a>
+
+      <a class="card" href="/tarot">
+        <div class="thumb">
+          <span class="badge">塔罗</span>
+          <img src="/gallery/tarot.png" alt="塔罗占卜" loading="lazy" />
+        </div>
+        <div class="meta">
+          <div class="text">
+            <div class="title">塔罗占卜</div>
+            <div class="desc">滑动牌轮 · 点击抽一张</div>
+          </div>
+          <div class="arrow">→</div>
+        </div>
+      </a>
+    </section>
+
+    <section class="philosophy">
+      <div class="section-eyebrow">PRODUCT DESIGN</div>
+      <h2 class="section-title">好灵的两条产品哲学</h2>
+
+      <div class="columns">
+        <article>
+          <h3>一个手势，一次交托</h3>
+          <div class="sub">仪式感的轻交互</div>
+          <p>市面上的玄学产品大多要求用户先填生辰、选问题、输入心愿——还没开始，就要先交一份作业。<strong>好灵把前置成本全部砍掉。</strong></p>
+          <p>每张卡片只有一个动作，但每个动作都有自己的手感：摇签筒、撕日历、抽塔罗、翻答案之书、看见自己的那一刻双击显化。从刷到到完成，不超过十秒。</p>
+          <p>但「轻」不等于「没感觉」。抖动、翻飞、翻面，每个动作都被刻意做成有重量的仪式——用户在完成动作的那一刻，已经把焦虑、犹豫、期待，押在了那个手势上。<strong>决策权交给系统，动作权还给用户。</strong></p>
+          <div class="gestures">
+            <span><em>摇</em>签筒</span>
+            <span><em>撕</em>日历</span>
+            <span><em>抽</em>塔罗</span>
+            <span><em>翻</em>答案之书</span>
+            <span><em>双击</em>显化</span>
+          </div>
+        </article>
+
+        <article>
+          <h3>稀缺即期待</h3>
+          <div class="sub">条件式推送</div>
+          <p>好灵的卡片不会高频出现。高频会破坏抖音原有的信息流体验，也会让产品失去准确性和稀缺性。<strong>五种卡片，各有触发条件：</strong></p>
+          <p>每日运势只在<strong>早晨通勤</strong>推一次；生肖年运一年只在<strong>春节前后</strong>推；塔罗只在系统判断用户<strong>心理状态足够明确</strong>时插入；求签日常低频，在<strong>情绪高点或重要节点</strong>加权；答案之书<strong>低频随机</strong>。</p>
+          <p>结果落在两个字：少出现，但每次正中靶心；今天还没看到的那张卡片，是用户主动打开抖音的额外理由。</p>
+          <div class="keypair">
+            <div>
+              <div class="k">准</div>
+              <div class="v">Precision</div>
+            </div>
+            <div>
+              <div class="k">稀缺</div>
+              <div class="v">Scarcity</div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <footer>好灵 HAOLING · MADE FOR DOUYIN HACKATHON 2026</footer>
+  </main>
+</body>
+</html>
